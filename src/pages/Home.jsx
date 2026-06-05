@@ -51,7 +51,7 @@ export default function Home() {
                   ))}
                   {/* 
                     SOrt by stop num to get accurate lines manually go to the stop.js and do this also have to add missing stops
-                    and to close the stop lines repeat the first stop twice but different stop numsas 1 and nth(last)
+                    and to close the stop lines repeat the first stop twice but different stopnums as 1 and nth(last)
                   */}
                   <Polyline 
                     positions={route.stops.sort((a, b) => a.stopNum - b.stopNum).map(stop => stop.coords)}
