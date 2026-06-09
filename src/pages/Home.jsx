@@ -23,14 +23,21 @@ export default function Home() {
   useEffect(() => {
 
     const fetchBusLive = async () => {
-      const response = await fetch("https://utility.arcgis.com/usrsvcs/servers/b02066689d504f5f9428029f7268e060/rest/services/Hosted/8bd5047cc5bf4195887cc5237cf0d3e0_Track_View/FeatureServer/1/query?f=json&where=1=1&outFields=*")
-      const data = await response.json()
-      setBusPositions(data.features)
+      const response = await fetch("https://utility.arcgis.com/usrsvcs/servers/b02066689d504f5f9428029f7268e060/rest/services/Hosted/8bd5047cc5bf4195887cc5237cf0d3e0_Track_View/FeatureServer/1/query?f=json&where=1=1&outFields=*").then( res => res.json()).then( data => setBusPositions(data.features)).catch(err => console.log(err))
     }
 
+
     fetchBusLive()
+
+    const timer = setInterval(fetchBusLive, 5000)
+
+    return () => {
+      //removes refresh timer when component unmounts so as to prevent it calling when it doesnt exist and causing an error
+      clearInterval(timer)
+    }
   }, [])
 
+  //this gets the created_user from the api and matches it to the appropriate object in the routes array so as to get the right color for bus icons
   const getBusColor = (createdUser) => {
     const route = routes.find(route => createdUser.includes(route.name))
     if(route){
