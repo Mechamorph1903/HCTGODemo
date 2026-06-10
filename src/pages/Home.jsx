@@ -1,6 +1,9 @@
 import { MapContainer, TileLayer, useMap, Marker, Popup, CircleMarker,Polyline } from 'react-leaflet'
 import {greenStops, goldStops, orangeStops, blueStops, redStops, purpleStops, brownStops} from '../data/stops.js'
 import { useEffect, useState } from 'react'
+import { NavLink } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { library } from '@fortawesome/fontawesome-svg-core'
 
 
 export default function Home() {
@@ -48,6 +51,9 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-black  text-xl">
+      <NavLink
+        to="/alerts"
+      ><FontAwesomeIcon icon="fa-solid fa-bell" /></NavLink>
       <h1>Howdy</h1>
       <div className='flex '>
         {/* //planing to implement a way to a system, similar to transit, where you can begin your journey in app and search for destination while it calculates best way to use transit there */}

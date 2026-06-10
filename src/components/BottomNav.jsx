@@ -10,9 +10,9 @@ library.add(fas, far, fab)
 //This is an array of objects that stores the routes, labvels and icons of each of the icons on the bottomNav
 const tabs = [
   { to: '/',        label: 'Home',     icon: "f-solid fa-house" },
-  { to: '/lines',   label: 'Routes',   icon: "fa-solid fa-bus-side" },
-  { to: '/alerts',  label: 'Alerts',   icon: "fa-solid fa-bell" },
-  { to: '/settings',label: 'Settings', icon: "fa-solid fa-user-gear"},
+  { to: '/Lines',   label: 'Routes',   icon: "fa-solid fa-bus-side" },
+  { to: '/Explore',  label: 'Explore',   icon: "fa-regular fa-compass" },
+  { to: '/Settings',label: 'Settings', icon: "fa-solid fa-user-gear"},
 ]
 
 export default function BottomNav() {
