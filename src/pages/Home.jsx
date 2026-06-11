@@ -61,7 +61,15 @@ export default function Home() {
         <button type="button" className='bg-blue-200'>Search</button>
       </div>
       <div id="Map" className='h-128 w-full p-5'>
-          <MapContainer center={[ 31.3271, -89.2903]} zoom={11.6} scrollWheelZoom={false} className='h-full w-full'>
+          <MapContainer 
+            center={[ 31.3271, -89.2903]} 
+            zoom={11.9} 
+            minZoom={11}
+            maxZoom={17}
+            maxBounds={[[31.252, -89.4198], [31.3724, -89.1663]]}
+            maxBoundsViscosity={1.0} 
+            scrollWheelZoom={false} 
+            className='h-full w-full'>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
