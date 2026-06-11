@@ -183,7 +183,7 @@ export const greenStops = [
             ]
         ],
         "route": "Green Route (4th St)",
-        "direction": "Station",
+        "direction": "Inbound",
         "coords": [
             31.324831962068586,
             -89.3445067931036
@@ -312,22 +312,26 @@ export const greenStops = [
             -89.3296919607634
         ]
     },
-];
+]; //ordered & complete
 
 export const goldStops = [
     {
-        "id": 188,
-        "stopNum": 0,
-        "name": " ",
+        "id": 194,
+        "stopNum": 15,
+        "name": "Parking Lot past Hillcrest",
         "transfer": [
-            false,
-            ""
+            true,
+            [
+                "Green",
+                "Brown",
+                "Gold"
+            ]
         ],
-        "route": " ",
-        "direction": " ",
+        "route": "Gold Route (USM)",
+        "direction": "Outbound",
         "coords": [
-            31.308876965456278,
-            -89.32009956683068
+            31.335390396092492,
+            -89.32972950667778
         ]
     },
     {
@@ -547,12 +551,12 @@ export const goldStops = [
             -89.33294547539538
         ]
     }
-];
+]; //ordered & complete
 
 export const redStops = [
     {
         "id": 72,
-        "stopNum": 0,
+        "stopNum": 8,
         "name": "Lincoln Rd and Roosevelt Blvd (dollar general)",
         "transfer": [
             false,
@@ -567,7 +571,7 @@ export const redStops = [
     },
     {
         "id": 73,
-        "stopNum": 1,
+        "stopNum": 7,
         "name": "Lincoln Rd and Hill St (Central Sunbelt)",
         "transfer": [
             false,
@@ -582,7 +586,7 @@ export const redStops = [
     },
     {
         "id": 74,
-        "stopNum": 2,
+        "stopNum": 6,
         "name": "Service Dr and W Pine St",
         "transfer": [
             false,
@@ -597,7 +601,7 @@ export const redStops = [
     },
     {
         "id": 75,
-        "stopNum": 3,
+        "stopNum": 5,
         "name": "S 17th St and Service Rd",
         "transfer": [
             false,
@@ -627,7 +631,7 @@ export const redStops = [
     },
     {
         "id": 77,
-        "stopNum": 5,
+        "stopNum": 3,
         "name": "On Service Rd near Popeye's Chicken",
         "transfer": [
             false,
@@ -642,7 +646,7 @@ export const redStops = [
     },
     {
         "id": 78,
-        "stopNum": 6,
+        "stopNum": 1,
         "name": "Walmart",
         "transfer": [
             false,
@@ -651,13 +655,28 @@ export const redStops = [
         "route": "Red Route (Country Club)",
         "direction": "Station",
         "coords": [
-            31.308876965456278,
-            -89.32009956683068
+             31.308032710449936,
+            -89.31943481352033
+        ]
+    },
+    {
+        "id": 78,
+        "stopNum": 30,
+        "name": "Walmart",
+        "transfer": [
+            false,
+            ""
+        ],
+        "route": "Red Route (Country Club)",
+        "direction": "Station",
+        "coords": [
+             31.308032710449936,
+            -89.31943481352033
         ]
     },
     {
         "id": 79,
-        "stopNum": 7,
+        "stopNum": 9,
         "name": "28th Ave at Winn Dixie",
         "transfer": [
             false,
@@ -672,7 +691,7 @@ export const redStops = [
     },
     {
         "id": 80,
-        "stopNum": 8,
+        "stopNum": 10,
         "name": "28th Ave and McInnis Loop",
         "transfer": [
             false,
@@ -687,7 +706,7 @@ export const redStops = [
     },
     {
         "id": 81,
-        "stopNum": 9,
+        "stopNum": 12,
         "name": "McInnis Loop near Disability office",
         "transfer": [
             false,
@@ -702,7 +721,7 @@ export const redStops = [
     },
     {
         "id": 82,
-        "stopNum": 10,
+        "stopNum": 13,
         "name": "Right before McInnis Loop and Country Club Rd",
         "transfer": [
             false,
@@ -717,7 +736,7 @@ export const redStops = [
     },
     {
         "id": 83,
-        "stopNum": 11,
+        "stopNum": 14,
         "name": "Country Club Rd at Bonhomie Apartments",
         "transfer": [
             false,
@@ -732,7 +751,7 @@ export const redStops = [
     },
     {
         "id": 84,
-        "stopNum": 12,
+        "stopNum": 15,
         "name": "Country Club Rd at Pineview Apartments",
         "transfer": [
             false,
@@ -747,7 +766,7 @@ export const redStops = [
     },
     {
         "id": 85,
-        "stopNum": 13,
+        "stopNum": 16,
         "name": "Country Club Rd at the park",
         "transfer": [
             false,
@@ -762,7 +781,7 @@ export const redStops = [
     },
     {
         "id": 86,
-        "stopNum": 14,
+        "stopNum": 17,
         "name": "Country Club Rd and Killingsworth Dr",
         "transfer": [
             false,
@@ -777,7 +796,7 @@ export const redStops = [
     },
     {
         "id": 87,
-        "stopNum": 15,
+        "stopNum": 19,
         "name": "Martin Luther king Av and Tuscan Av",
         "transfer": [
             false,
@@ -792,7 +811,7 @@ export const redStops = [
     },
     {
         "id": 88,
-        "stopNum": 16,
+        "stopNum": 18,
         "name": "Dumas Av and Martin Luther King Av",
         "transfer": [
             false,
@@ -807,7 +826,7 @@ export const redStops = [
     },
     {
         "id": 89,
-        "stopNum": 17,
+        "stopNum": 20,
         "name": "William Carey Pkwy and Tuscan",
         "transfer": [
             false,
@@ -822,7 +841,7 @@ export const redStops = [
     },
     {
         "id": 90,
-        "stopNum": 18,
+        "stopNum": 21,
         "name": "William Carey Pkwy at Wisteria Apartments Entrance 1",
         "transfer": [
             false,
@@ -837,7 +856,7 @@ export const redStops = [
     },
     {
         "id": 91,
-        "stopNum": 19,
+        "stopNum": 22,
         "name": "William Carey Pkwy at Wisteria Apartments Entrance 3",
         "transfer": [
             false,
@@ -852,7 +871,7 @@ export const redStops = [
     },
     {
         "id": 92,
-        "stopNum": 20,
+        "stopNum": 23,
         "name": "William Carey Pkwy and Dosset St",
         "transfer": [
             false,
@@ -867,7 +886,7 @@ export const redStops = [
     },
     {
         "id": 93,
-        "stopNum": 21,
+        "stopNum": 24,
         "name": "William Carey Pkwy at JR (Just before entering HWY 49)",
         "transfer": [
             false,
@@ -882,7 +901,7 @@ export const redStops = [
     },
     {
         "id": 166,
-        "stopNum": 22,
+        "stopNum": 2,
         "name": "On Service Rd near Cspire",
         "transfer": [
             false,
@@ -897,7 +916,7 @@ export const redStops = [
     },
     {
         "id": 167,
-        "stopNum": 23,
+        "stopNum": 11,
         "name": "McInnis Loop at Greenbriar Apts",
         "transfer": [
             false,
@@ -912,7 +931,7 @@ export const redStops = [
     },
     {
         "id": 172,
-        "stopNum": 24,
+        "stopNum": 25,
         "name": "Service Dr and Fred's Pharmacy",
         "transfer": [
             false,
@@ -927,7 +946,7 @@ export const redStops = [
     },
     {
         "id": 173,
-        "stopNum": 25,
+        "stopNum": 26,
         "name": "Service Dr and Carriage Inn",
         "transfer": [
             false,
@@ -942,7 +961,7 @@ export const redStops = [
     },
     {
         "id": 174,
-        "stopNum": 26,
+        "stopNum": 27,
         "name": "Service Dr and Summit",
         "transfer": [
             true,
@@ -960,7 +979,7 @@ export const redStops = [
     },
     {
         "id": 175,
-        "stopNum": 27,
+        "stopNum": 28,
         "name": "Service Dr and Popeye's Chicken",
         "transfer": [
             true,
@@ -978,7 +997,7 @@ export const redStops = [
     },
     {
         "id": 176,
-        "stopNum": 28,
+        "stopNum": 29,
         "name": "Cloverleaf Mall",
         "transfer": [
             true,
@@ -994,778 +1013,465 @@ export const redStops = [
             -89.31839276779061
         ]
     }
-];
+]; //ordered & complete
 
 export const blueStops = [
     {
-        "id": 0,
-        "stopNum": 0,
-        "name": "Main St and W Front",
-        "transfer": [
-            false,
-            ""
-        ],
-        "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.326397386078284,
-            -89.28950294824931
-        ]
-    },
-    {
         "id": 1,
         "stopNum": 1,
-        "name": "Main St and New Orleans St (Federal Building)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Train Depot",
+        "transfer": [true, ["Red", "Brown", "Purple"]],
         "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.328024171682273,
-            -89.29192839951676
-        ]
+        "direction": "Station",
+        "coords": [31.329904148328566, -89.28373576412446]
     },
     {
         "id": 2,
         "stopNum": 2,
-        "name": "On McLeod St (By FireStation No.1)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Main St and W Front",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Outbound",
-        "coords": [
-            31.327993477874514,
-            -89.2937340132381
-        ]
+        "coords": [31.326397386078284, -89.28950294824931]
     },
     {
         "id": 3,
         "stopNum": 3,
-        "name": "Hardy St and 1st Ave",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Main St and New Orleans St (Federal Building)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Inbound",
-        "coords": [
-            31.324709182614015,
-            -89.29569234055775
-        ]
+        "direction": "Outbound",
+        "coords": [31.328024171682273, -89.29192839951676]
     },
     {
         "id": 4,
         "stopNum": 4,
-        "name": "On Hardy St (Main Library)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "On McLeod St (By FireStation No.1)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Outbound",
-        "coords": [
-            31.324908699146377,
-            -89.29694099880285
-        ]
+        "coords": [31.327993477874514, -89.2937340132381]
     },
     {
         "id": 5,
         "stopNum": 5,
-        "name": "Hardy St and Pinehurst St",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "On Hardy St (Main Library)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Inbound",
-        "coords": [
-            31.324655466552272,
-            -89.30365141397616
-        ]
+        "direction": "Outbound",
+        "coords": [31.324908699146377, -89.29694099880285]
     },
     {
         "id": 6,
         "stopNum": 6,
         "name": "Hardy St and Hutchinson Ave.",
-        "transfer": [
-            false,
-            ""
-        ],
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Outbound",
-        "coords": [
-            31.324847309489158,
-            -89.30993063781303
-        ]
+        "coords": [31.324847309489158, -89.30993063781303]
     },
     {
         "id": 7,
         "stopNum": 7,
-        "name": "Hardy and 17th St. (Across Zoo)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy and 17th Ave. (Across Zoo)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Outbound",
-        "coords": [
-            31.324847309489158,
-            -89.31440424792856
-        ]
+        "coords": [31.324847309489158, -89.31440424792856]
     },
     {
         "id": 8,
         "stopNum": 8,
         "name": "Hardy St and Park Ave.",
-        "transfer": [
-            false,
-            ""
-        ],
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Outbound",
-        "coords": [
-            31.324847309489158,
-            -89.31774598078596
-        ]
+        "coords": [31.324847309489158, -89.31774598078596]
     },
     {
         "id": 9,
         "stopNum": 9,
-        "name": "Hardy St and Park Ave(Shelter)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and 20th Ave",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Inbound",
-        "coords": [
-            31.3246247716461,
-            -89.31797055960702
-        ]
+        "direction": "Outbound",
+        "coords": [31.324854983198506, -89.32269569800214]
     },
     {
         "id": 10,
         "stopNum": 10,
-        "name": "Hardy St and 20th Ave",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and 25th Ave",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Outbound",
-        "coords": [
-            31.324854983198506,
-            -89.32269569800214
-        ]
+        "coords": [31.32487800432277, -89.3276813478297]
     },
     {
         "id": 11,
         "stopNum": 11,
-        "name": "Hardy St and 25th Ave",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and USM Rose Garden",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Outbound",
-        "coords": [
-            31.32487800432277,
-            -89.3276813478297
-        ]
+        "coords": [31.32487800432277, -89.33120274374394]
     },
     {
         "id": 12,
         "stopNum": 12,
-        "name": "28th Ave @ Pine Grove Health Center",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and 30th Ave (JR Gas Station)",
+        "transfer": [true, ["Gold"]],
         "route": "Blue Route (Hardy St)",
-        "direction": "Inbound",
-        "coords": [
-            31.321240596866488,
-            -89.33122969320246
-        ]
+        "direction": "Outbound",
+        "coords": [31.324901025441406, -89.33584703376349]
     },
     {
         "id": 13,
         "stopNum": 13,
-        "name": "Hardy and 21st Ave",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and Ross St (34th)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Inbound",
-        "coords": [
-            31.324601750459905,
-            -89.32287536105899
-        ]
+        "direction": "Outbound",
+        "coords": [31.32495474136303, -89.33946724435899]
     },
     {
         "id": 14,
         "stopNum": 14,
-        "name": "Hardy and 17th Ave. (Zoo)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and 36th Ave",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Inbound",
-        "coords": [
-            31.324617097918008,
-            -89.31467374251385
-        ]
+        "direction": "Outbound",
+        "coords": [31.325039152035075, -89.34311440441301]
     },
     {
         "id": 15,
         "stopNum": 15,
-        "name": "Hardy St and Hutchinson Ave.",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and 38th Ave",
+        "transfer": [true, ["Green"]],
         "route": "Blue Route (Hardy St)",
-        "direction": "Inbound",
-        "coords": [
-            31.32464779282668,
-            -89.3095443622408
-        ]
+        "direction": "Outbound",
+        "coords": [31.32508519418795, -89.3454590073049]
     },
     {
         "id": 16,
         "stopNum": 16,
-        "name": "Hardy St (Across from McDonalds)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and 40th Ave",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Outbound",
-        "coords": [
-            31.32370391980713,
-            -89.36347921190684
-        ]
+        "coords": [31.325115888943998, -89.34757903137572]
     },
     {
         "id": 17,
         "stopNum": 17,
-        "name": "Hardy St and Mamie St",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and Coco Cola Ave",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Inbound",
-        "coords": [
-            31.324701508892787,
-            -89.29994137185223
-        ]
+        "direction": "Outbound",
+        "coords": [31.324379212036376, -89.35920323115384]
     },
     {
         "id": 18,
         "stopNum": 18,
-        "name": "Front St and Forrest St.",
-        "transfer": [
-            true,
-            [
-                "Blue",
-                "Orange"
-            ]
-        ],
+        "name": "Hardy St (Across from McDonald's)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Inbound",
-        "coords": [
-            31.325476551578035,
-            -89.29076957280009
-        ]
+        "direction": "Outbound",
+        "coords": [31.32370391980713, -89.36347921190684]
     },
     {
         "id": 19,
         "stopNum": 19,
-        "name": "Hardy St and 25th Ave",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Wesley (Green Eye Institute)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Inbound",
-        "coords": [
-            31.324594076729923,
-            -89.32787897719223
-        ]
+        "direction": "Outbound",
+        "coords": [31.32441758076763, -89.3660304273141]
     },
     {
         "id": 20,
         "stopNum": 20,
-        "name": "Train Depot",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Wesley (Front Entrance)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Station",
-        "coords": [
-            31.329904148328566,
-            -89.28373576412446
-        ]
+        "direction": "Outbound",
+        "coords": [31.325576309083942, -89.36663229855453]
     },
     {
         "id": 21,
         "stopNum": 21,
-        "name": "Hardy St and 29th Ave",
-        "transfer": [
-            true,
-            [
-                "Blue",
-                "Green"
-            ]
-        ],
+        "name": "Wesley (Millsaps Dr)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Inbound",
-        "coords": [
-            31.323811352985786,
-            -89.33262208189304
-        ]
+        "direction": "Outbound",
+        "coords": [31.323972502523915, -89.3677012937428]
     },
     {
         "id": 22,
         "stopNum": 22,
-        "name": "Hardy St and USM Rose Garden",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Turtle Creek Mall (Between Dillards and Pier 1 imports)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Outbound",
-        "coords": [
-            31.32487800432277,
-            -89.33120274374394
-        ]
+        "coords": [31.324402233277013, -89.37435780999904]
     },
     {
         "id": 23,
         "stopNum": 23,
-        "name": "28th Av and Hardy",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Turtle Creek Mall (Between Dick's and Dillards)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Inbound",
-        "coords": [
-            31.324555708070605,
-            -89.33124765950815
-        ]
+        "direction": "Outbound",
+        "coords": [31.323419988673407, -89.37577714814816]
     },
     {
         "id": 24,
         "stopNum": 24,
-        "name": "Hardy St and 30th St  (JR Gas Station)",
-        "transfer": [
-            true,
-            [
-                "Blue",
-                "Gold"
-            ]
-        ],
+        "name": "Turtle Creek Mall (In front of Rio Grande)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Outbound",
-        "coords": [
-            31.324901025441406,
-            -89.33584703376349
-        ]
+        "coords": [31.32739494662232, -89.37804988581729]
     },
     {
         "id": 25,
         "stopNum": 25,
-        "name": "Hardy St and Ross S t(34h St)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Cross Creek Parkway (Across Bed Bath and Beyond)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Outbound",
-        "coords": [
-            31.32495474136303,
-            -89.33946724435899
-        ]
+        "coords": [31.323627181747327, -89.38135568606332]
     },
     {
         "id": 26,
         "stopNum": 26,
-        "name": "Hardy St and 36th St",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Walmart",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.325039152035075,
-            -89.34311440441301
-        ]
+        "direction": "Station",
+        "coords": [31.320511563699426, -89.37926261145103]
     },
     {
         "id": 27,
         "stopNum": 27,
-        "name": "Hardy St and  38th St",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St (Lowes)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.32508519418795,
-            -89.3454590073049
-        ]
+        "direction": "Inbound",
+        "coords": [31.321992646218632, -89.37514832744918]
     },
     {
         "id": 28,
         "stopNum": 28,
-        "name": " Hardy St and 40th St",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St (TJ Max)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.325115888943998,
-            -89.34757903137572
-        ]
+        "direction": "Inbound",
+        "coords": [31.322276581656865, -89.37153710000652]
     },
     {
         "id": 29,
         "stopNum": 29,
-        "name": "Hardy St and Coco Cola Ave",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St (Shell Gas station)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.324379212036376,
-            -89.35920323115384
-        ]
+        "direction": "Inbound",
+        "coords": [31.32272934180054, -89.36671314693012]
     },
     {
         "id": 30,
         "stopNum": 30,
-        "name": "Wesley (Green Eye Institute)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St (McDonald's)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.32441758076763,
-            -89.3660304273141
-        ]
+        "direction": "Inbound",
+        "coords": [31.32322814282803, -89.3631109026403]
     },
     {
         "id": 31,
         "stopNum": 31,
-        "name": "Wesley (Front Entrance)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St on Service Rd (Best Buy)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.325576309083942,
-            -89.36663229855453
-        ]
+        "direction": "Inbound",
+        "coords": [31.323036296591738, -89.35785575822747]
     },
     {
         "id": 32,
         "stopNum": 32,
-        "name": "Wesley (Millsaps Dr)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Georgia Blue",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.323972502523915,
-            -89.3677012937428
-        ]
+        "direction": "Inbound",
+        "coords": [31.323289533541086, -89.35586149829645]
     },
     {
         "id": 33,
         "stopNum": 33,
-        "name": "Village @Turtle Creek",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and 38th Ave",
+        "transfer": [true, ["Green"]],
         "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.32512356263146,
-            -89.37404339964957
-        ]
+        "direction": "Inbound",
+        "coords": [31.324831962068586, -89.3445067931036]
     },
     {
         "id": 34,
         "stopNum": 34,
-        "name": "Turtle Creek mall (Between Dillards and Pier 1 imports)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and 34th Ave",
+        "transfer": [true, ["Green"]],
         "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.324402233277013,
-            -89.37435780999904
-        ]
+        "direction": "Inbound",
+        "coords": [31.32473987749266, -89.34051827324156]
     },
     {
         "id": 35,
         "stopNum": 35,
-        "name": "Turtle Creek Mall (Between Dick's and Dillards)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and 30th Ave",
+        "transfer": [true, ["Green"]],
         "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.323419988673407,
-            -89.37577714814816
-        ]
+        "direction": "Inbound",
+        "coords": [31.324663140277252, -89.33443667876722]
     },
     {
         "id": 36,
         "stopNum": 36,
-        "name": "Turtle Creek Mall (In front of Rio Grande)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and 29th Ave",
+        "transfer": [true, ["Blue", "Green"]],
         "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.32739494662232,
-            -89.37804988581729
-        ]
+        "direction": "Inbound",
+        "coords": [31.323811352985786, -89.33262208189304]
     },
     {
         "id": 37,
         "stopNum": 37,
-        "name": "Cross Creek Parkway (Across Bed Bath and Beyond)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "28th Ave @ Pine Grove Health Center",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Outbound",
-        "coords": [
-            31.323627181747327,
-            -89.38135568606332
-        ]
+        "direction": "Inbound",
+        "coords": [31.321240596866488, -89.33122969320246]
     },
     {
         "id": 38,
         "stopNum": 38,
-        "name": "Walmart",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "28th Ave and Hardy",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
-        "direction": "Station",
-        "coords": [
-            31.320511563699426,
-            -89.37926261145103
-        ]
+        "direction": "Inbound",
+        "coords": [31.324775723714975, -89.3311647714052]
     },
     {
         "id": 39,
         "stopNum": 39,
-        "name": "Hardy St (Lowes)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and 25th Ave",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Inbound",
-        "coords": [
-            31.321992646218632,
-            -89.37514832744918
-        ]
+        "coords": [31.324794053588054, -89.32783883225653]
     },
     {
         "id": 40,
         "stopNum": 40,
-        "name": "Hardy St (TJ Max)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy and 21st Ave",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Inbound",
-        "coords": [
-            31.322276581656865,
-            -89.37153710000652
-        ]
+        "coords": [31.324601750459905, -89.32287536105899]
     },
     {
         "id": 41,
         "stopNum": 41,
-        "name": "Hardy St (Shell Gas station)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and Park Ave(Shelter)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Inbound",
-        "coords": [
-            31.32272934180054,
-            -89.36671314693012
-        ]
+        "coords": [31.3246247716461, -89.31797055960702]
     },
     {
         "id": 42,
         "stopNum": 42,
-        "name": "Hardy St (McDonald's)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy and 17th Ave. (Zoo)",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Inbound",
-        "coords": [
-            31.32322814282803,
-            -89.3631109026403
-        ]
+        "coords": [31.324617097918008, -89.31467374251385]
     },
     {
         "id": 43,
         "stopNum": 43,
-        "name": "Georgia Blue",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and Hutchinson Ave.",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Inbound",
-        "coords": [
-            31.323289533541086,
-            -89.35586149829645
-        ]
+        "coords": [31.32464779282668, -89.3095443622408]
     },
     {
         "id": 44,
         "stopNum": 44,
-        "name": "Hardy St and 38th Ave",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and Pinehurst St",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Inbound",
-        "coords": [
-            31.324831962068586,
-            -89.3445067931036
-        ]
+        "coords": [31.324655466552272, -89.30365141397616]
     },
     {
         "id": 45,
         "stopNum": 45,
-        "name": "Hardy St and 34th Ave",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and Mamie St",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Inbound",
-        "coords": [
-            31.32473987749266,
-            -89.34051827324156
-        ]
+        "coords": [31.324701508892787, -89.29994137185223]
     },
     {
         "id": 46,
         "stopNum": 46,
-        "name": "Hardy St and 30th Ave",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Hardy St and 1st Ave",
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Inbound",
-        "coords": [
-            31.324663140277252,
-            -89.33443667876722
-        ]
+        "coords": [31.324709182614015, -89.29569234055775]
     },
     {
-        "id": 156,
+        "id": 47,
         "stopNum": 47,
-        "name": "Stop Sign on Service Rd (Best Buy)",
-        "transfer": [
-            false,
-            ""
-        ],
+        "name": "Front St and Forrest St.",
+        "transfer": [true, ["Blue", "Orange", "Red"]],
         "route": "Blue Route (Hardy St)",
         "direction": "Inbound",
-        "coords": [
-            31.323036296591738,
-            -89.35785575822747
-        ]
+        "coords": [31.325476551578035, -89.29076957280009]
     },
     {
-        "id": 157,
+        "id": 48,
         "stopNum": 48,
         "name": "Main St and Short St",
-        "transfer": [
-            true,
-            [
-                "Blue",
-                "Brown",
-                "Orange"
-            ]
-        ],
+        "transfer": [true, ["Blue", "Brown", "Orange"]],
         "route": "Blue Route (Hardy St)",
         "direction": "Inbound",
-        "coords": [
-            31.325967664432426,
-            -89.28922447051119
-        ]
+        "coords": [31.325967664432426, -89.28922447051119]
     },
     {
-        "id": 158,
+        "id": 49,
         "stopNum": 49,
         "name": "Buschman St and River Av",
-        "transfer": [
-            false,
-            ""
-        ],
+        "transfer": [false, ""],
         "route": "Blue Route (Hardy St)",
         "direction": "Inbound",
-        "coords": [
-            31.326374365325563,
-            -89.2856491756799
-        ]
+        "coords": [31.326374365325563, -89.2856491756799]
+    },
+    {
+        "id": 50,
+        "stopNum": 50,
+        "name": "Train Depot (return)",
+        "transfer": [true, ["Red", "Brown", "Purple"]],
+        "route": "Blue Route (Hardy St)",
+        "direction": "Station",
+        "coords": [31.329904148328566, -89.28373576412446]
     }
-];
+];  //ordered&complete
 
 export const purpleStops = [
     {
         "id": 94,
-        "stopNum": 0,
+        "stopNum": 13,
         "name": "Old Airport Rd and Edwards St",
         "transfer": [
             false,
@@ -1780,7 +1486,7 @@ export const purpleStops = [
     },
     {
         "id": 95,
-        "stopNum": 1,
+        "stopNum": 14,
         "name": "Old Airport Rd at Family Health Center",
         "transfer": [
             false,
@@ -1795,7 +1501,7 @@ export const purpleStops = [
     },
     {
         "id": 96,
-        "stopNum": 2,
+        "stopNum": 15,
         "name": "Old Airport Rd and Chancellor Rd",
         "transfer": [
             false,
@@ -1810,7 +1516,7 @@ export const purpleStops = [
     },
     {
         "id": 97,
-        "stopNum": 3,
+        "stopNum": 16,
         "name": "Old Airport Rd and Hattiesburg Ave",
         "transfer": [
             false,
@@ -1825,7 +1531,7 @@ export const purpleStops = [
     },
     {
         "id": 98,
-        "stopNum": 4,
+        "stopNum": 18,
         "name": "Tatum Rd and Hood Rd",
         "transfer": [
             false,
@@ -1840,7 +1546,7 @@ export const purpleStops = [
     },
     {
         "id": 99,
-        "stopNum": 5,
+        "stopNum": 20,
         "name": "Travillion Rd and Stepts Ave",
         "transfer": [
             false,
@@ -1855,7 +1561,7 @@ export const purpleStops = [
     },
     {
         "id": 100,
-        "stopNum": 6,
+        "stopNum": 19,
         "name": "Tatum Rd and Stepts Ave",
         "transfer": [
             false,
@@ -1870,7 +1576,7 @@ export const purpleStops = [
     },
     {
         "id": 101,
-        "stopNum": 7,
+        "stopNum": 31,
         "name": "Lilac St and Hattiesburg St",
         "transfer": [
             false,
@@ -1885,7 +1591,7 @@ export const purpleStops = [
     },
     {
         "id": 102,
-        "stopNum": 8,
+        "stopNum": 30,
         "name": "McCall St and Dixie Pine Rd",
         "transfer": [
             false,
@@ -1900,7 +1606,7 @@ export const purpleStops = [
     },
     {
         "id": 103,
-        "stopNum": 9,
+        "stopNum": 29,
         "name": "McCall St and Collins Rd",
         "transfer": [
             false,
@@ -1915,8 +1621,8 @@ export const purpleStops = [
     },
     {
         "id": 104,
-        "stopNum": 10,
-        "name": "Edwards St and Barkley Rd",
+        "stopNum": 28,
+        "name": "Edwards St and Barkley Rd (Return)",
         "transfer": [
             false,
             ""
@@ -1930,7 +1636,7 @@ export const purpleStops = [
     },
     {
         "id": 105,
-        "stopNum": 11,
+        "stopNum": 27,
         "name": "Edwards St past Central School Rd",
         "transfer": [
             false,
@@ -1945,7 +1651,7 @@ export const purpleStops = [
     },
     {
         "id": 138,
-        "stopNum": 12,
+        "stopNum": 2,
         "name": "Main St and Buschman St",
         "transfer": [
             false,
@@ -1960,7 +1666,7 @@ export const purpleStops = [
     },
     {
         "id": 139,
-        "stopNum": 13,
+        "stopNum": 3,
         "name": "Bay St and Rebecca Av",
         "transfer": [
             false,
@@ -1975,7 +1681,7 @@ export const purpleStops = [
     },
     {
         "id": 140,
-        "stopNum": 14,
+        "stopNum": 5,
         "name": "Edwards St and Katie St",
         "transfer": [
             true,
@@ -1993,7 +1699,7 @@ export const purpleStops = [
     },
     {
         "id": 141,
-        "stopNum": 15,
+        "stopNum": 6,
         "name": "Edwards St and Duke Av",
         "transfer": [
             false,
@@ -2008,7 +1714,7 @@ export const purpleStops = [
     },
     {
         "id": 142,
-        "stopNum": 16,
+        "stopNum": 7,
         "name": "Edwards St and Tuscan Av",
         "transfer": [
             true,
@@ -2026,7 +1732,7 @@ export const purpleStops = [
     },
     {
         "id": 143,
-        "stopNum": 17,
+        "stopNum": 8,
         "name": "Lilac St and Hattiesburg St",
         "transfer": [
             false,
@@ -2041,8 +1747,8 @@ export const purpleStops = [
     },
     {
         "id": 144,
-        "stopNum": 18,
-        "name": "Tatum Industrial Dr  at Georgia Pacific",
+        "stopNum": 21,
+        "name": "Tatum Industrial Dr at Georgia Pacific",
         "transfer": [
             false,
             ""
@@ -2056,7 +1762,7 @@ export const purpleStops = [
     },
     {
         "id": 145,
-        "stopNum": 19,
+        "stopNum": 25,
         "name": "JM Tatum Industrial Dr at DMV",
         "transfer": [
             false,
@@ -2086,7 +1792,7 @@ export const purpleStops = [
     },
     {
         "id": 147,
-        "stopNum": 21,
+        "stopNum": 11,
         "name": "Edwards St and Barkley Rd",
         "transfer": [
             false,
@@ -2101,7 +1807,7 @@ export const purpleStops = [
     },
     {
         "id": 148,
-        "stopNum": 22,
+        "stopNum": 9,
         "name": "Edwards St and Dixie Pine Rd",
         "transfer": [
             false,
@@ -2116,7 +1822,7 @@ export const purpleStops = [
     },
     {
         "id": 149,
-        "stopNum": 23,
+        "stopNum": 32,
         "name": "Tuscan St and Edwards St",
         "transfer": [
             false,
@@ -2131,8 +1837,8 @@ export const purpleStops = [
     },
     {
         "id": 150,
-        "stopNum": 24,
-        "name": "Edwards St and Duke Av",
+        "stopNum": 33,
+        "name": "Edwards St and Duke Av (Return)",
         "transfer": [
             false,
             ""
@@ -2146,8 +1852,8 @@ export const purpleStops = [
     },
     {
         "id": 151,
-        "stopNum": 25,
-        "name": "Edwards St and Katie St",
+        "stopNum": 34,
+        "name": "Edwards St and Katie St(Return)",
         "transfer": [
             true,
             [
@@ -2164,8 +1870,8 @@ export const purpleStops = [
     },
     {
         "id": 152,
-        "stopNum": 26,
-        "name": "Bay St and Rebecca Av",
+        "stopNum": 35,
+        "name": "Bay St and Rebecca Av (Return)",
         "transfer": [
             false,
             ""
@@ -2179,8 +1885,8 @@ export const purpleStops = [
     },
     {
         "id": 153,
-        "stopNum": 27,
-        "name": "Main St and Buschman St",
+        "stopNum": 36,
+        "name": "Main St and Buschman St(Return)",
         "transfer": [
             false,
             ""
@@ -2194,7 +1900,22 @@ export const purpleStops = [
     },
     {
         "id": 155,
-        "stopNum": 28,
+        "stopNum": 1,
+        "name": "Train Depot",
+        "transfer": [
+            false,
+            ""
+        ],
+        "route": "Purple Line (Palmer's Crossing)",
+        "direction": "Station",
+        "coords": [
+            31.329904148328566,
+            -89.28373576412446
+        ]
+    },
+    {
+        "id": 155,
+        "stopNum": 37,
         "name": "Train Depot",
         "transfer": [
             false,
@@ -2209,7 +1930,7 @@ export const purpleStops = [
     },
     {
         "id": 165,
-        "stopNum": 29,
+        "stopNum": 10,
         "name": "Edwards St and Fellowship Center",
         "transfer": [
             false,
@@ -2224,7 +1945,7 @@ export const purpleStops = [
     },
     {
         "id": 177,
-        "stopNum": 30,
+        "stopNum": 17,
         "name": "Sullivan St at Palmer's Crossing Apartments",
         "transfer": [
             false,
@@ -2239,7 +1960,7 @@ export const purpleStops = [
     },
     {
         "id": 178,
-        "stopNum": 31,
+        "stopNum": 26,
         "name": "PRCC",
         "transfer": [
             false,
@@ -2254,7 +1975,7 @@ export const purpleStops = [
     },
     {
         "id": 181,
-        "stopNum": 32,
+        "stopNum": 22,
         "name": "Tatum Industrial Dr at Kohler",
         "transfer": [
             false,
@@ -2269,7 +1990,7 @@ export const purpleStops = [
     },
     {
         "id": 182,
-        "stopNum": 33,
+        "stopNum": 23,
         "name": "Woodall Tech Center",
         "transfer": [
             false,
@@ -2284,7 +2005,7 @@ export const purpleStops = [
     },
     {
         "id": 183,
-        "stopNum": 34,
+        "stopNum": 24,
         "name": "Southhill Dr and Sullivan Dr",
         "transfer": [
             false,
@@ -2299,7 +2020,7 @@ export const purpleStops = [
     },
     {
         "id": 208,
-        "stopNum": 35,
+        "stopNum": 4,
         "name": "Katie Ave and Arnold St",
         "transfer": [
             false,
@@ -2312,12 +2033,12 @@ export const purpleStops = [
             -89.29014973525396
         ]
     }
-];
+];//ordered & complete
 
 export const orangeStops = [
     {
         "id": 47,
-        "stopNum": 0,
+        "stopNum": 2,
         "name": "River Ave and Williams St",
         "transfer": [
             false,
@@ -2332,7 +2053,7 @@ export const orangeStops = [
     },
     {
         "id": 48,
-        "stopNum": 1,
+        "stopNum": 3,
         "name": "Mc Innis and Tipton",
         "transfer": [
             false,
@@ -2347,7 +2068,7 @@ export const orangeStops = [
     },
     {
         "id": 49,
-        "stopNum": 2,
+        "stopNum": 4,
         "name": "Tipton St and Rebecca St",
         "transfer": [
             false,
@@ -2362,7 +2083,7 @@ export const orangeStops = [
     },
     {
         "id": 50,
-        "stopNum": 3,
+        "stopNum": 5,
         "name": "Tipton St and Alcorn St",
         "transfer": [
             false,
@@ -2377,7 +2098,7 @@ export const orangeStops = [
     },
     {
         "id": 51,
-        "stopNum": 4,
+        "stopNum": 6,
         "name": "James St and Alcorn St",
         "transfer": [
             false,
@@ -2392,7 +2113,7 @@ export const orangeStops = [
     },
     {
         "id": 52,
-        "stopNum": 5,
+        "stopNum": 8,
         "name": "Edwards St and Duke St",
         "transfer": [
             true,
@@ -2410,7 +2131,7 @@ export const orangeStops = [
     },
     {
         "id": 53,
-        "stopNum": 6,
+        "stopNum": 9,
         "name": "Edwards St and Tuscan Av",
         "transfer": [
             true,
@@ -2428,7 +2149,7 @@ export const orangeStops = [
     },
     {
         "id": 54,
-        "stopNum": 7,
+        "stopNum": 10,
         "name": "William Carey and Tuscan Av",
         "transfer": [
             false,
@@ -2443,7 +2164,7 @@ export const orangeStops = [
     },
     {
         "id": 55,
-        "stopNum": 8,
+        "stopNum": 11,
         "name": "Cypress St and Penton St",
         "transfer": [
             false,
@@ -2458,7 +2179,7 @@ export const orangeStops = [
     },
     {
         "id": 56,
-        "stopNum": 9,
+        "stopNum": 12,
         "name": "Wills Av and John St",
         "transfer": [
             false,
@@ -2473,7 +2194,7 @@ export const orangeStops = [
     },
     {
         "id": 57,
-        "stopNum": 10,
+        "stopNum": 13,
         "name": "Katie St and Charles St",
         "transfer": [
             false,
@@ -2488,7 +2209,7 @@ export const orangeStops = [
     },
     {
         "id": 58,
-        "stopNum": 11,
+        "stopNum": 14,
         "name": "Hall St and Dabbs St",
         "transfer": [
             false,
@@ -2503,7 +2224,7 @@ export const orangeStops = [
     },
     {
         "id": 59,
-        "stopNum": 12,
+        "stopNum": 15,
         "name": "6th Av and W Pine St",
         "transfer": [
             false,
@@ -2518,7 +2239,7 @@ export const orangeStops = [
     },
     {
         "id": 60,
-        "stopNum": 13,
+        "stopNum": 16,
         "name": "Broadway Dr and Corinne St",
         "transfer": [
             false,
@@ -2533,7 +2254,7 @@ export const orangeStops = [
     },
     {
         "id": 61,
-        "stopNum": 14,
+        "stopNum": 17,
         "name": "Broadway Dr and Timothy Ln",
         "transfer": [
             false,
@@ -2548,7 +2269,7 @@ export const orangeStops = [
     },
     {
         "id": 62,
-        "stopNum": 15,
+        "stopNum": 19,
         "name": "On Service Rd at Waffle House",
         "transfer": [
             false,
@@ -2563,7 +2284,7 @@ export const orangeStops = [
     },
     {
         "id": 63,
-        "stopNum": 16,
+        "stopNum": 20,
         "name": "On Service Rd near Popeye's Chicken",
         "transfer": [
             false,
@@ -2578,7 +2299,7 @@ export const orangeStops = [
     },
     {
         "id": 64,
-        "stopNum": 17,
+        "stopNum": 22,
         "name": "On Service Rd by Walmart",
         "transfer": [
             true,
@@ -2596,7 +2317,7 @@ export const orangeStops = [
     },
     {
         "id": 65,
-        "stopNum": 18,
+        "stopNum": 25,
         "name": "W Pine St by Service Dr",
         "transfer": [
             false,
@@ -2611,7 +2332,7 @@ export const orangeStops = [
     },
     {
         "id": 66,
-        "stopNum": 19,
+        "stopNum": 26,
         "name": "W Pine St by Health Dept",
         "transfer": [
             false,
@@ -2626,7 +2347,7 @@ export const orangeStops = [
     },
     {
         "id": 67,
-        "stopNum": 20,
+        "stopNum": 27,
         "name": "Timothy Ln and Broadway",
         "transfer": [
             false,
@@ -2641,7 +2362,7 @@ export const orangeStops = [
     },
     {
         "id": 68,
-        "stopNum": 21,
+        "stopNum": 28,
         "name": "Broadway Dr and Florence Ave",
         "transfer": [
             false,
@@ -2656,7 +2377,7 @@ export const orangeStops = [
     },
     {
         "id": 69,
-        "stopNum": 22,
+        "stopNum": 29,
         "name": "Halls St and W Pine St",
         "transfer": [
             false,
@@ -2671,7 +2392,7 @@ export const orangeStops = [
     },
     {
         "id": 70,
-        "stopNum": 23,
+        "stopNum": 30,
         "name": "W Pine St and 1st Ave",
         "transfer": [
             false,
@@ -2686,7 +2407,22 @@ export const orangeStops = [
     },
     {
         "id": 71,
-        "stopNum": 24,
+        "stopNum": 1,
+        "name": "Train Depot",
+        "transfer": [
+            false,
+            ""
+        ],
+        "route": "Orange Route (Broadway)",
+        "direction": "Station",
+        "coords": [
+            31.329904148328566,
+            -89.28373576412446
+        ]
+    },
+    {
+        "id": 71,
+        "stopNum": 33,
         "name": "Train Depot",
         "transfer": [
             false,
@@ -2701,7 +2437,7 @@ export const orangeStops = [
     },
     {
         "id": 136,
-        "stopNum": 25,
+        "stopNum": 23,
         "name": "Roosevelt Blvd Before Lincoln Rd",
         "transfer": [
             false,
@@ -2716,7 +2452,7 @@ export const orangeStops = [
     },
     {
         "id": 168,
-        "stopNum": 26,
+        "stopNum": 18,
         "name": "Bartur St and Broadway St",
         "transfer": [
             false,
@@ -2731,7 +2467,7 @@ export const orangeStops = [
     },
     {
         "id": 171,
-        "stopNum": 27,
+        "stopNum": 31,
         "name": "Front St and Forrest St.",
         "transfer": [
             true,
@@ -2749,7 +2485,7 @@ export const orangeStops = [
     },
     {
         "id": 186,
-        "stopNum": 28,
+        "stopNum": 7,
         "name": "Edwards St and Katie St",
         "transfer": [
             true,
@@ -2767,7 +2503,7 @@ export const orangeStops = [
     },
     {
         "id": 187,
-        "stopNum": 29,
+        "stopNum": 21,
         "name": "Service Road and Cloverleaf Dr",
         "transfer": [
             false,
@@ -2782,7 +2518,7 @@ export const orangeStops = [
     },
     {
         "id": 189,
-        "stopNum": 30,
+        "stopNum": 24,
         "name": "Lincoln Rd at Central Sunbelt Bank",
         "transfer": [
             false,
@@ -2797,7 +2533,7 @@ export const orangeStops = [
     },
     {
         "id": 190,
-        "stopNum": 31,
+        "stopNum": 32,
         "name": "Main St and Short St",
         "transfer": [
             true,
@@ -2814,12 +2550,12 @@ export const orangeStops = [
             -89.28922447051119
         ]
     }
-];
+];//ordered & complete
 
 export const brownStops = [
     {
         "id": 106,
-        "stopNum": 0,
+        "stopNum": 3,
         "name": "E 2nd St and Mobile St",
         "transfer": [
             false,
@@ -2834,7 +2570,7 @@ export const brownStops = [
     },
     {
         "id": 107,
-        "stopNum": 1,
+        "stopNum": 5,
         "name": "Mobile St and E 7th St",
         "transfer": [
             false,
@@ -2849,7 +2585,7 @@ export const brownStops = [
     },
     {
         "id": 108,
-        "stopNum": 2,
+        "stopNum": 6,
         "name": "E 7th St and Fairley St",
         "transfer": [
             false,
@@ -2864,7 +2600,7 @@ export const brownStops = [
     },
     {
         "id": 109,
-        "stopNum": 3,
+        "stopNum": 7,
         "name": "E 9th St and Bouie St",
         "transfer": [
             false,
@@ -2879,7 +2615,7 @@ export const brownStops = [
     },
     {
         "id": 110,
-        "stopNum": 4,
+        "stopNum": 8,
         "name": "E 9th St and Mobile St",
         "transfer": [
             false,
@@ -2894,7 +2630,7 @@ export const brownStops = [
     },
     {
         "id": 111,
-        "stopNum": 5,
+        "stopNum": 10,
         "name": "Coit St and Lula",
         "transfer": [
             false,
@@ -2909,7 +2645,7 @@ export const brownStops = [
     },
     {
         "id": 112,
-        "stopNum": 6,
+        "stopNum": 11,
         "name": "Coit st and Hwy 42",
         "transfer": [
             false,
@@ -2924,7 +2660,7 @@ export const brownStops = [
     },
     {
         "id": 113,
-        "stopNum": 7,
+        "stopNum": 12,
         "name": "US Hwy 42 and Redus St",
         "transfer": [
             false,
@@ -2939,7 +2675,7 @@ export const brownStops = [
     },
     {
         "id": 114,
-        "stopNum": 8,
+        "stopNum": 13,
         "name": "US Hwy 42 and Glendale Ave",
         "transfer": [
             false,
@@ -2954,7 +2690,7 @@ export const brownStops = [
     },
     {
         "id": 115,
-        "stopNum": 9,
+        "stopNum": 14,
         "name": "US Hwy 42 and Pritchard St",
         "transfer": [
             false,
@@ -2969,7 +2705,7 @@ export const brownStops = [
     },
     {
         "id": 116,
-        "stopNum": 10,
+        "stopNum": 15,
         "name": "US Hwy 42 and Cahal St",
         "transfer": [
             false,
@@ -2984,7 +2720,7 @@ export const brownStops = [
     },
     {
         "id": 117,
-        "stopNum": 11,
+        "stopNum": 16,
         "name": "US Hwy 42 at Health Dept.",
         "transfer": [
             false,
@@ -2999,7 +2735,7 @@ export const brownStops = [
     },
     {
         "id": 118,
-        "stopNum": 12,
+        "stopNum": 18,
         "name": "N 31st and Hwy 49",
         "transfer": [
             false,
@@ -3014,7 +2750,7 @@ export const brownStops = [
     },
     {
         "id": 119,
-        "stopNum": 13,
+        "stopNum": 17,
         "name": "Service Dr and N 31st Ave",
         "transfer": [
             false,
@@ -3029,7 +2765,7 @@ export const brownStops = [
     },
     {
         "id": 120,
-        "stopNum": 14,
+        "stopNum": 19,
         "name": "Campbell Dr at Mark Apartment",
         "transfer": [
             false,
@@ -3044,7 +2780,7 @@ export const brownStops = [
     },
     {
         "id": 121,
-        "stopNum": 15,
+        "stopNum": 23,
         "name": "W 7th St and N 31st Ave",
         "transfer": [
             false,
@@ -3059,8 +2795,8 @@ export const brownStops = [
     },
     {
         "id": 122,
-        "stopNum": 16,
-        "name": "W 7th St and Service Dr",
+        "stopNum": 24,
+        "name": "W 7th St and Service Dr(Hillcrest Lot)",
         "transfer": [
             false,
             ""
@@ -3074,7 +2810,7 @@ export const brownStops = [
     },
     {
         "id": 123,
-        "stopNum": 17,
+        "stopNum": 26,
         "name": "W 7th St and 19th St",
         "transfer": [
             false,
@@ -3089,7 +2825,7 @@ export const brownStops = [
     },
     {
         "id": 124,
-        "stopNum": 18,
+        "stopNum": 27,
         "name": "W 7th St and Oliver Av",
         "transfer": [
             false,
@@ -3104,7 +2840,7 @@ export const brownStops = [
     },
     {
         "id": 125,
-        "stopNum": 19,
+        "stopNum": 28,
         "name": "W 7th St and North St",
         "transfer": [
             false,
@@ -3119,7 +2855,7 @@ export const brownStops = [
     },
     {
         "id": 126,
-        "stopNum": 20,
+        "stopNum": 29,
         "name": "W 7th St and Main St",
         "transfer": [
             false,
@@ -3134,7 +2870,7 @@ export const brownStops = [
     },
     {
         "id": 127,
-        "stopNum": 21,
+        "stopNum": 31,
         "name": "Main St and Eaton St",
         "transfer": [
             false,
@@ -3149,7 +2885,7 @@ export const brownStops = [
     },
     {
         "id": 128,
-        "stopNum": 22,
+        "stopNum": 30,
         "name": "Main St and 4th St",
         "transfer": [
             false,
@@ -3164,7 +2900,7 @@ export const brownStops = [
     },
     {
         "id": 129,
-        "stopNum": 23,
+        "stopNum": 32,
         "name": "Main St and Short St",
         "transfer": [
             true,
@@ -3183,7 +2919,7 @@ export const brownStops = [
     },
     {
         "id": 137,
-        "stopNum": 24,
+        "stopNum": 2,
         "name": "Briarfield Apt and E 2nd",
         "transfer": [
             false,
@@ -3198,7 +2934,22 @@ export const brownStops = [
     },
     {
         "id": 154,
-        "stopNum": 25,
+        "stopNum": 1,
+        "name": "Train Depot",
+        "transfer": [
+            false,
+            ""
+        ],
+        "route": "Brown Route (Hwy 42)",
+        "direction": "Station",
+        "coords": [
+            31.329873455133807,
+            -89.2838076293472
+        ]
+    },
+    {
+        "id": 154,
+        "stopNum": 33,
         "name": "Train Depot",
         "transfer": [
             false,
@@ -3213,7 +2964,7 @@ export const brownStops = [
     },
     {
         "id": 179,
-        "stopNum": 26,
+        "stopNum": 20,
         "name": "Campbell Dr and Overlook Apartments",
         "transfer": [
             false,
@@ -3228,7 +2979,7 @@ export const brownStops = [
     },
     {
         "id": 180,
-        "stopNum": 27,
+        "stopNum": 21,
         "name": "Beverly Hills Dr and Plantation Apartments",
         "transfer": [
             false,
@@ -3243,8 +2994,8 @@ export const brownStops = [
     },
     {
         "id": 184,
-        "stopNum": 28,
-        "name": "Bevelry Hills and 37th",
+        "stopNum": 22,
+        "name": "Beverly Hills and 37th",
         "transfer": [
             false,
             ""
@@ -3258,7 +3009,7 @@ export const brownStops = [
     },
     {
         "id": 191,
-        "stopNum": 29,
+        "stopNum": 4,
         "name": "Mobile St and E 4th St",
         "transfer": [
             false,
@@ -3273,7 +3024,7 @@ export const brownStops = [
     },
     {
         "id": 192,
-        "stopNum": 30,
+        "stopNum": 9,
         "name": "E 9th St and Memphis",
         "transfer": [
             false,
@@ -3288,7 +3039,7 @@ export const brownStops = [
     },
     {
         "id": 193,
-        "stopNum": 31,
+        "stopNum": 25,
         "name": "W 7th St and 25th Ave",
         "transfer": [
             false,
@@ -3301,5 +3052,5 @@ export const brownStops = [
             -89.32786999403939
         ]
     }
-];
+];//ordered & complete
 

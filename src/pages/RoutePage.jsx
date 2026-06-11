@@ -10,10 +10,10 @@ export default function RoutePage({route}){
           { stops: greenStops, color: '#38A800', name: 'Green', alt: "(4th Street)", passThru: ["USM", "Midtown", "Walmart @ 49"]}, //Green Route is ordered and complete
           { stops: blueStops, color: '#0070FF' , name: 'Blue', alt: "(Hardy Street)", passThru: ["Midtown", "Turtle Creek"]},
           { stops: brownStops, color: '#732600' , name: 'Brown', alt: "(7th Street)", passThru: ["Highway 42", "Downtown"]},
-          { stops: goldStops, color: '#E6E600' , name: 'Gold', alt: "(USM)", passThru: []},
+          { stops: goldStops, color: '#E6E600' , name: 'Gold', alt: "(USM)", passThru: ["Southern Miss"]}, //Ordered and Complete
           { stops: purpleStops, color: '#A900E6' , name: 'Purple', alt: "(Palmer's Crossing)", passThru: ["Edwards Street", "Downtown"]},
           { stops: orangeStops, color: '#FC921F' , name: 'Orange', alt: "(Broadway)", passThru: ["William Carey", "James St", "Downtown"]},
-          { stops: redStops, color: '#E60000' , name: 'Red', alt: "(Country Club)", passThru: ["Cloverleaf", "William Carey", "Walmart @ 49"]},
+          { stops: redStops, color: '#E60000' , name: 'Red', alt: "(Country Club)", passThru: ["Cloverleaf", "William Carey", "Walmart @ 49"]}, //Ordered and Complete
           
         ]
     
