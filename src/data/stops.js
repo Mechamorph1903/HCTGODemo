@@ -312,7 +312,7 @@ export const greenStops = [
             -89.3296919607634
         ]
     },
-]; //ordered & complete
+];//ordered & complete
 
 export const goldStops = [
     {
@@ -551,7 +551,7 @@ export const goldStops = [
             -89.33294547539538
         ]
     }
-]; //ordered & complete
+];//ordered & complete
 
 export const redStops = [
     {
@@ -1013,7 +1013,7 @@ export const redStops = [
             -89.31839276779061
         ]
     }
-]; //ordered & complete
+];//ordered & complete
 
 export const blueStops = [
     {
@@ -1466,7 +1466,7 @@ export const blueStops = [
         "direction": "Station",
         "coords": [31.329904148328566, -89.28373576412446]
     }
-];  //ordered&complete
+];//ordered&complete
 
 export const purpleStops = [
     {
