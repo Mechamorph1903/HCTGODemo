@@ -51,9 +51,10 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-black  text-xl">
-      <NavLink
-        to="/alerts"
-      ><FontAwesomeIcon icon="fa-solid fa-bell" /></NavLink>
+      <div className='flex justify-between w-full p-6'>
+        <NavLink to="/Info"><FontAwesomeIcon icon="fa-solid fa-circle-info" /></NavLink>
+        <NavLink to="/Alerts"><FontAwesomeIcon icon="fa-solid fa-bell" /></NavLink>
+      </div>
       <h1>Howdy</h1>
       <div className='flex '>
         {/* //planing to implement a way to a system, similar to transit, where you can begin your journey in app and search for destination while it calculates best way to use transit there */}

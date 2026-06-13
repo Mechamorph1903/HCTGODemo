@@ -32,7 +32,7 @@ export const greenStops = [
     {
         "id": 170,
         "stopNum": 3,
-        "name": "N 26th Ave and Quinn St (fka Service Dr @ Glory Bound)",
+        "name": "N 26th Ave and Quinn St",
         "transfer": [false, ""],
         "route": "Green Route (4th St)",
         "direction": "Outbound",
@@ -41,7 +41,7 @@ export const greenStops = [
     {
         "id": 169,
         "stopNum": 4,
-        "name": "W 7th St at Hillcrest Lot(fka Service Rd @ Hillcrest)",
+        "name": "W 7th St at Hillcrest Lot",
         "transfer": [false, ""],
         "route": "Green Route (4th St)",
         "direction": "Outbound",
@@ -1896,7 +1896,7 @@ export const brownStops = [
         "id": 122,
         "stopNum": 24,
         "name": "W 7th St and Service Dr(Hillcrest Lot)",
-        "transfer": [false, ""],
+        "transfer": [true, ["Green", "Gold"]],
         "route": "Brown Route (Hwy 42)",
         "direction": "Inbound",
         "coords": [31.33559756281842, -89.32957679307945]
@@ -1968,7 +1968,7 @@ export const brownStops = [
         "id": 129,
         "stopNum": 32,
         "name": "Main St and Short St",
-        "transfer": [true, ["Blue", "Brown", "Orange"]],
+        "transfer": [true, ["Blue", "Orange"]],
         "route": "Brown Route (Hwy 42)",
         "direction": "Inbound",
         "coords": [31.325967664432426, -89.28922447051119]
@@ -1977,7 +1977,7 @@ export const brownStops = [
         "id": 154,
         "stopNum": 33,
         "name": "Train Depot",
-        "transfer": [false, ""],
+        "transfer": [true, ["Blue", "Purple", "Orange"]],
         "route": "Brown Route (Hwy 42)",
         "direction": "Station",
         "coords": [31.329873455133807, -89.2838076293472]

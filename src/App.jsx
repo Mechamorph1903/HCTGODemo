@@ -8,6 +8,7 @@ import NotificationsPage from './pages/NotificationsPage'
 import SettingsPage from './pages/SettingsPage'
 import ExplorePage from './pages/VisitHBG'
 import RoutePage from './pages/RoutePage'
+import InfoPage from './pages/Information'
 
 
 
@@ -22,7 +23,7 @@ export default function App() {
   },[location.pathname])
 
   const slideOrder = ['/', '/Lines', '/Explore', "/Settings"]
-  const isColorRoute = ['/Green', '/Purple', '/Gold', '/Blue', '/Red', '/Orange', '/Brown'].includes(location.pathname);
+  const isColorRoute = ['/Green', '/Purple', '/Gold', '/Blue', '/Red', '/Orange', '/Brown', '/Info', '/Alerts'].includes(location.pathname);
   //this is to figure out if we are sliding left or right dependent on the order of troutes in SlideOrder
   const getDirection = () => {
     const currentIndex = slideOrder.indexOf(location.pathname)
@@ -62,7 +63,7 @@ export default function App() {
 
   return (
     <div className="mx-auto h-screen max-w-lg bg-white text-black flex flex-col">
-      <main className='flex-1 border-2 border-black overflow-y-auto overflow-x-hidden scroll-smooth overscroll-contain scrollbar-thin relative'>
+      <main className='flex-1 border-2 border-black overflow-y-auto overflow-x-hidden scroll-smooth overscroll-contain[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative '>
         <AnimatePresence mode='wait' custom={direction}>
           <motion.div
             className='w-full h-full absolute origin-top'
@@ -77,6 +78,7 @@ export default function App() {
             <Routes location={location}>
               <Route path='/' element={<Home />} />
               <Route path='/Lines' element={<Lines />} />
+              <Route path='/Info' element={<InfoPage />} />
               <Route path='/Alerts' element={<NotificationsPage />} />
               <Route path='/Explore' element={<ExplorePage />} />
               <Route path='/Settings' element={<SettingsPage />} />

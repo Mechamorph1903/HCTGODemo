@@ -24,7 +24,7 @@ export default function Lines() {
         <FontAwesomeIcon icon="fa-solid fa-route" />
       </div>      
       {/* //where we will map all the routepills */}
-      <div className="col-span-3 row-span-8 flex flex-col gap-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-y">
+      <div className="col-span-3 row-span-8 flex flex-col gap-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-y">
         {
           routes.map((route,index) => (
             <NavLink

@@ -17,7 +17,7 @@ const tabs = [
 
 export default function BottomNav() {
   return (
-    <nav className="flex justify-around items-center h-16 bg-zinc-200 border-t border-zinc-700">
+    <nav className="flex justify-around items-center h-16 bg-zinc-200">
       {/* Map to apply formatting to alll items in the array, makes a navlink for each icon */}
       {tabs.map(tab => (
         <NavLink
