@@ -33,7 +33,7 @@ export default function InfoPage(){
                         </div>                     
                     </div>
 
-                    <div className="mt-4 bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-amber-800">
+                    <div className="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800">
                         <p>Pay as you board bus.</p><br />
                         <p>Exact change only; Drivers do not possess change.</p><br />
                         <p>If using reduced or free fare, please have ID in hand before boarding bus to reduce delay (students to show student ID)</p>
@@ -43,7 +43,7 @@ export default function InfoPage(){
                     <h2 className="text-xl font-semibold mb-4">Runtime</h2>
                     <p>
                         <strong>Hub City Transit</strong> buses run from <strong>6:00 AM until 6:30 PM, Monday through Friday</strong>. 
-                        <span className="mt-4 bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-amber-800 inline-block">Buses do not run on the following holidays: <strong>New Year's Day, Martin Luther King Jr. Day, Good Friday, Memorial Day, Fourth July, 
+                        <span className="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800 inline-block">Buses do not run on the following holidays: <strong>New Year's Day, Martin Luther King Jr. Day, Good Friday, Memorial Day, Fourth July, 
                         Labor Day, Veteran's Day, Thanskgiving Day and Christmas Day.</strong></span>
                     </p>
                 </div>
