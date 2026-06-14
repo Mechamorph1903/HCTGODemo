@@ -139,7 +139,7 @@ export default function RoutePage({route}){
                         {/* for the stops. expands to show arrival times and/or stop pictures*/}
                         {
                             currRoute.stops.map((stop) => (
-                                <div className='grid grid-cols-3 justify-center items-center mb-5 border-2 rounded-lg p-3 h-23' key={stop.id}> 
+                                <div className='grid grid-cols-3 justify-center items-center mb-5 border-2 border-slate-200 rounded-lg p-3 h-23' key={stop.id}> 
                                     <div>{stop.name}</div>
                                     <div>
                                         <p>Next Scheduled: </p>
