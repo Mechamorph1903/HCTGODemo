@@ -1,15 +1,9 @@
 import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { Red, Green, Gold, Brown, Blue, Purple, Orange } from '../data/routes.js'
 
-const routes = [
-  { name: 'Blue', alt: 'Hardy St', color: '#0070FF' },
-  { name: 'Green', alt: '4th St', color: '#38A800' },
-  { name: 'Brown', alt: 'Hwy 42', color: '#732600' },
-  { name: 'Gold', alt: 'USM', color: '#E6E600' },
-  { name: 'Purple', alt: "Palmer's Crossing", color: '#A900E6' },
-  { name: 'Orange', alt: 'Broadway', color: '#FC921F' },
-  { name: 'Red', alt: 'Country Club', color: '#E60000' },
-]
+const routes = [Red, Green, Gold, Blue, Purple, Orange, Brown]
+
 
 export default function SettingsPage() {
   const [favRoutes, setFavRoutes] = useState([])

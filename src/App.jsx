@@ -22,8 +22,8 @@ export default function App() {
     prevlocation.current = location.pathname
   },[location.pathname])
 
-  const slideOrder = ['/', '/Lines', '/Explore', "/Settings"]
-  const isColorRoute = ['/Green', '/Purple', '/Gold', '/Blue', '/Red', '/Orange', '/Brown', '/Info', '/Alerts'].includes(location.pathname);
+  const slideOrder = ['/', '/Lines','/Green', '/Purple', '/Gold', '/Blue', '/Red', '/Orange', '/Brown', '/Explore', "/Settings"]
+  const isInfo = ['/Info', '/Alerts'].includes(location.pathname);
   //this is to figure out if we are sliding left or right dependent on the order of troutes in SlideOrder
   const getDirection = () => {
     const currentIndex = slideOrder.indexOf(location.pathname)
@@ -59,11 +59,11 @@ export default function App() {
     exit: { scaleY: 0, opacity: 0 }
   };
 
-  const activeVariant = isColorRoute ? scrollVariants : slideVariants;
+  const activeVariant = isInfo ? scrollVariants : slideVariants;
 
   return (
     <div className="mx-auto h-screen max-w-lg bg-white text-black flex flex-col">
-      <main className='flex-1 border-2 border-black overflow-y-auto overflow-x-hidden scroll-smooth overscroll-contain[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative '>
+      <main className='flex-1 border-x-2 border-black overflow-y-auto overflow-x-hidden scroll-smooth overscroll-contain[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative '>
         <AnimatePresence mode='wait' custom={direction}>
           <motion.div
             className='w-full h-full absolute origin-top'
