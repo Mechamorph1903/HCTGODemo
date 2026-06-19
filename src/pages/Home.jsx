@@ -120,7 +120,7 @@ export default function Home() {
 
 
       {/*GENERAL MAP */}
-      <div id="Map" className='h-128 w-full p-5 rounded-2xl overflow-hidden shadow-md relative'>
+      <div id="Map" className='h-128 w-full p-5 overflow-hidden shadow-md relative'>
           <MapContainer 
             center={[ 31.3271, -89.2903]} 
             zoom={11.9} 
