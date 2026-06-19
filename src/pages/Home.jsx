@@ -46,6 +46,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-black text-xl font-sans antialiased mx-auto shadow-xl">
+      {/**HEADER SECTION  */}
       <div className='flex justify-between items-center w-full px-6 py-4 bg-white border-b border-slate-100'>
         <NavLink to="/Info" className="text-slate-500 hover:text-slate-800 transition-colors">
           <FontAwesomeIcon icon="fa-solid fa-circle-info" className="text-xl" />
@@ -56,6 +57,10 @@ export default function Home() {
           <span className="absolute -top-1 -right-1 flex h-2 w-2 rounded-full bg-blue-500"></span>
         </NavLink>
       </div>
+
+
+
+      {/**SEARCH BAR SECTION */}
       <div className='px-5 pt-4 pb-2 bg-white '>
         {/* //planing to implement a way to a system, similar to transit, where you can begin your journey in app and search for destination while it calculates best way to use transit there */}
         <h1 className='text-2xl font-semibold font-black tracking-tight text-slate-900 mb-3'>Where to next?</h1>
@@ -78,7 +83,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 🧭 TOP MAP FILTERS: Route Sort Selector Row */}
+
+
+
+      {/*TOP MAP FILTERS: Route Sort Selector Row */}
       <div className="flex items-center gap-2 overflow-x-auto w-100 px-5 py-2.5 bg-white border-b border-slate-100 shrink-0 scrollbar-none">
         <button
           onClick={() => setActiveFilter(null)}
@@ -108,6 +116,10 @@ export default function Home() {
       </div>
 
 
+
+
+
+      {/*GENERAL MAP */}
       <div id="Map" className='h-128 w-full p-5 rounded-2xl overflow-hidden shadow-md relative'>
           <MapContainer 
             center={[ 31.3271, -89.2903]} 
@@ -139,9 +151,9 @@ export default function Home() {
                   opacity={activeFilter ? 0.95 : 0.75}
                 />
                 
-                {route.stops.map(stop => (
+                {route.stops.map((stop, index) => (
                   <CircleMarker 
-                    key={stop.id}
+                    key={index}
                     center={stop.coords}
                     radius={2.5}
                     fillColor="white"
@@ -172,6 +184,11 @@ export default function Home() {
           </MapContainer>
       </div>
       
+
+
+            
+
+      {/*FAVOURITE ROUTES SECTION*/}
       <div>
         {/**
          * for favourites section

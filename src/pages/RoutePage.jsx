@@ -87,9 +87,9 @@ export default function RoutePage({route}){
                                     color={currRoute["color"]}
                                     weight={6}
                                     />
-                                    {currRoute["stops"].map(stop => (
+                                    {currRoute["stops"].map((stop, index) => (
                                         <CircleMarker 
-                                        key={stop.id}
+                                        key={index}
                                         center={stop.coords}
                                         radius={2}
                                         fillColor="white"
@@ -128,7 +128,7 @@ export default function RoutePage({route}){
                     <div className='border-l-2 border-l-slate-400 pl-4'>
                         {/* for the stops. expands to show arrival times and/or stop pictures*/}
                         {
-                            currRoute.stops.map((stop) => {
+                            currRoute.stops.map((stop, index) => {
                                 // 1. Generate the stop's full array of times first
                                 const stopTimes = scheduleGenerator(
                                     stop.minuteOffset,
@@ -142,7 +142,7 @@ export default function RoutePage({route}){
                                 
                                 
                                 return (
-                                <div className='grid grid-cols-3 justify-center items-center mb-5 border-2 border-slate-200 rounded-lg p-3 ' key={stop.id}> 
+                                <div className='grid grid-cols-3 justify-center items-center mb-5 border-2 border-slate-200 rounded-lg p-3 ' key={index}> 
                                     <div>{stop.name}</div>
                                     <div className='flex gap-2'>
                                         <p>Next Scheduled: </p>

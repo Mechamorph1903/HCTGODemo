@@ -53,7 +53,7 @@ export const Gold = {
     offlineMap: "", 
     frequency: [15],
     info: "This Route goes through and around the beautiful campus of the University of Southern Mississippi, home of the Golden Eagles. Recommended for students getting around campus!",
-    isDualBus: false,
+    isDualBus: true,
     isDelayed: [false, []]// 
     }
 
