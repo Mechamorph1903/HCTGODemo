@@ -142,7 +142,7 @@ export default function RoutePage({route}){
                                 
                                 
                                 return (
-                                <div className='grid grid-cols-3 justify-center items-center mb-5 border-2 border-slate-200 rounded-lg p-3 ' key={index}> 
+                                <div className='grid grid-cols-3 justify-center items-center mb-5 border-2 border-slate-200 rounded-lg p-3 gap-2' key={index}> 
                                     <div>{stop.name}</div>
                                     <div className='flex gap-2'>
                                         <p>Next Scheduled: </p>
