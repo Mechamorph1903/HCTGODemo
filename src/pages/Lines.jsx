@@ -1,12 +1,34 @@
 import RoutePill from "../components/BusPill"
-import { Red, Green, Gold, Brown, Blue, Purple, Orange } from '../data/routes.js'
+import { useState, useEffect } from "react"
 import { NavLink } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
+import { db } from '../data/firebase.js'
+import { collection, getDocs } from 'firebase/firestore'
 
 export default function Lines() {
-  const routes = [Red, Green, Gold, Blue, Purple, Orange, Brown]
+  const [routes, setRoutes] = useState([])
+  const [loading, setLoading] = useState(true)
 
+  useEffect(() => {
+    async function fetchRoutes() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "routes"));
+        const cloudRoutes = [];
+        querySnapshot.forEach((doc) => {
+          cloudRoutes.push({ id: doc.id, ...doc.data() });
+        });
+        setRoutes(cloudRoutes);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching lines registry: ", error);
+        setLoading(false);
+      }
+    }
+    fetchRoutes();
+  }, []);
+
+  if (loading) return <div className="p-5 text-slate-500">⏳ Loading active lines...</div>;
 
   return (
     <div className="grid grid-columns-3 grid-rows-9 h-full text-black text-xl p-5 py-2">

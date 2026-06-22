@@ -1,20 +1,55 @@
 import { MapContainer, TileLayer, useMap, Marker, Popup, CircleMarker,Polyline } from 'react-leaflet'
-import { Red, Green, Gold, Brown, Blue, Purple, Orange } from '../data/routes.js'
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
+import { db } from '../data/firebase.js'
+import { collection, getDocs } from 'firebase/firestore'
 
 
 export default function Home() {
-  //an array of objects contaning route data and their colors
-  const routes = [Red, Green, Gold, Blue, Purple, Orange, Brown]
+  const [routes, setRoutes] = useState([])       // Holds our 7 color lines metadata
+  const [allStops, setAllStops] = useState([])   // Holds all stops globally for mapping
+  const [loading, setLoading] = useState(true)
     
 
   //This is where we will store and constantly update live bus positions
   const [busPositions, setBusPositions] = useState([])
   const [activeFilter, setActiveFilter] = useState(null) // null = Show All, or 'Blue', 'Red', etc.
-  const [favouriteRoutes, setFavouriteRoutes] = useState(["Blue", "Green"])
+  const [favouriteRoutes, setFavouriteRoutes] = useState(["blue", "green"])
+
+
+  // 📡 EFFECT 1: Fetch Routes and Stops from Cloud Firestore on Boot
+  useEffect(() => {
+    async function downloadCloudTransitData() {
+      try {
+        // 1. Fetch Route Metadata
+        const routesSnapshot = await getDocs(collection(db, "routes"));
+        const cloudRoutes = [];
+        routesSnapshot.forEach((doc) => {
+          cloudRoutes.push({ id: doc.id, ...doc.data() });
+        });
+        setRoutes(cloudRoutes);
+
+        // 2. Fetch All Stops
+        const stopsSnapshot = await getDocs(collection(db, "stops"));
+        const cloudStops = [];
+        stopsSnapshot.forEach((doc) => {
+          cloudStops.push({ id: doc.id, ...doc.data() });
+        });
+        setAllStops(cloudStops);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error connecting to Transit Cloud Firestore: ", error);
+        setLoading(false);
+      }
+    }
+
+    downloadCloudTransitData();
+  }, []);
+
+  // 🚌 EFFECT 2: Live ESRI/ArcGIS Bus Tracker API (runs every 5 seconds)
   useEffect(() => {
 
     const fetchBusLive = async () => {
@@ -43,6 +78,44 @@ export default function Home() {
   const visibleRoutes = activeFilter 
     ? routes.filter(r => r.name === activeFilter) 
     : routes
+  const getGroupedStops = () => {
+    const groups = {};
+
+    // Filter out stops belonging to currently visible routes
+    const allowedRouteIds = visibleRoutes.map(r => r.id);
+    const visibleStops = allStops.filter(stop => allowedRouteIds.includes(stop.routeId));
+
+    visibleStops.forEach(stop => {
+      // Create a unique coordinate key identifier string (e.g., "31.32,-89.29")
+      const coordKey = `${stop.coords[0].toFixed(5)},${stop.coords[1].toFixed(5)}`;
+      
+      if (!groups[coordKey]) {
+        groups[coordKey] = {
+          coords: stop.coords,
+          names: new Set([stop.name]),
+          servingRoutes: new Set([stop.routeId]), // Tracks which routes pass through here
+          stopNumbers: []
+        };
+      } else {
+        groups[coordKey].names.add(stop.name);
+        groups[coordKey].servingRoutes.add(stop.routeId);
+      }
+      groups[coordKey].stopNumbers.push(`${stop.routeId.toUpperCase()} #${stop.stopNum}`);
+    });
+
+    return Object.values(groups);
+  };
+
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-50 text-slate-600 font-semibold">
+        <div className="text-center">
+          <p className="text-xl animate-pulse">🛰️ Syncing with HubCity Transit Cloud...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-black text-xl font-sans antialiased mx-auto shadow-xl">
@@ -130,57 +203,103 @@ export default function Home() {
             maxBoundsViscosity={1.0} 
             scrollWheelZoom={false} 
             className='h-full w-full z-10 rounded-xl'>
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            {/* //what we have done here is populated the leaflet map object with route points from stops.js and connecting them
-            //with colored lines representing the routes they belong on. lines arent perfect yet but will get there
-            // my plan for transfer points is for the point to have all colours of routes on transfers */}
-            {/* Loop ONLY through filtering conditions */}
-            {visibleRoutes.map(route => (
-              <span key={route.name}>
-                {/* 
-                    SOrt by stop num to get accurate lines manually go to the stop.js and do this also have to add missing stops
-                    and to close the stop lines repeat the first stop twice but different stopnums as 1 and nth(last)
-                */}
-                <Polyline 
-                  positions={route.stops.sort((a, b) => a.stopNum - b.stopNum).map(stop => stop.coords)}
-                  color={route.color}
-                  weight={5}
-                  opacity={activeFilter ? 0.95 : 0.75}
-                />
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {/* //what we have done here is populated the leaflet map object with route points from stops.js and connecting them
+              //with colored lines representing the routes they belong on. lines arent perfect yet but will get there
+              // my plan for transfer points is for the point to have all colours of routes on transfers */}
+              {/* Loop ONLY through filtering conditions */}
+              {visibleRoutes.map((route, index) =>{ 
+                const routeStops = allStops
+                  .filter(stop => stop.routeId === route.id)
+                  .sort((a, b) => a.stopNum - b.stopNum);
                 
-                {route.stops.map((stop, index) => (
-                  <CircleMarker 
-                    key={index}
-                    center={stop.coords}
-                    radius={2.5}
-                    fillColor="white"
-                    color='#334155'
-                    fillOpacity={1}
-                    weight={1.5}
-                  />
-                ))}
+                
+                return (
+                <span key={index}>
+                  {/* 
+                      SOrt by stop num to get accurate lines manually go to the stop.js and do this also have to add missing stops
+                      and to close the stop lines repeat the first stop twice but different stopnums as 1 and nth(last)
+                  */}
+                  {routeStops.length > 0 && (
+                      <Polyline 
+                        positions={routeStops.map(stop => stop.coords)}
+                        color={route.color}
+                        weight={5}
+                        opacity={activeFilter ? 0.95 : 0.65}
+                      />
+                    )}
+                  
+                 {/* LAYER 2: Draw the interactive combined points on top */}
+                  {getGroupedStops().map((groupedStop, idx) => {
+                    const routeIdsArray = Array.from(groupedStop.servingRoutes);
+                    // If a stop serves multiple routes, color the circle dark slate, otherwise use the line color
+                    const markerColor = routeIdsArray.length > 1 ? '#1e293b' : routes.find(r => r.id === routeIdsArray[0])?.color || '#334155';
 
-                {/* Filter live buses map indicators matching active view bounds */}
-                {busPositions
-                  .filter(bus => bus.attributes.created_user.includes(route.name))
-                  .map(bus => (
-                    <CircleMarker
-                      key={bus.attributes.objectid}
-                      center={[bus.geometry.y, bus.geometry.x]}
-                      radius={8}
-                      fillColor={route.color}
-                      color='white'
-                      fillOpacity={1}
-                      weight={2.5}
-                      className="animate-pulse"
-                    />
-                  ))
-                }
-              </span>
-            ))}
+                    return (
+                      <CircleMarker 
+                        key={`group_stop_${idx}`}
+                        center={groupedStop.coords}
+                        radius={4} 
+                        fillColor="white"
+                        color={markerColor}
+                        fillOpacity={1}
+                        weight={2.5}
+                      >
+                        <Popup>
+                          <div className="text-sm font-sans min-w-[160px]">
+                            {/* Combines slash names if they differ across routes */}
+                            <h4 className="font-bold text-slate-900 leading-tight mb-1">
+                              {Array.from(groupedStop.names).join(' / ')}
+                            </h4>
+                            
+                            <div className="border-t border-slate-100 pt-1.5 mt-1.5">
+                              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Serves Lines:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {routeIdsArray.map(rId => {
+                                  const rData = routes.find(r => r.id === rId);
+                                  return (
+                                    <span 
+                                      key={rId} 
+                                      className="px-1.5 py-0.5 text-[10px] font-extrabold text-white rounded uppercase"
+                                      style={{ backgroundColor: rData?.color || '#94a3b8' }}
+                                    >
+                                      {rData?.name || rId}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            <p className="text-[11px] text-slate-500 mt-2 font-medium bg-slate-50 p-1 rounded border border-slate-100">
+                              📌 {groupedStop.stopNumbers.join(', ')}
+                            </p>
+                          </div>
+                        </Popup>
+                      </CircleMarker>
+                    );
+                  })}
+
+                  {/* Filter live buses map indicators matching active view bounds */}
+                  {busPositions
+                    .filter(bus => bus.attributes.created_user.includes(route.name))
+                    .map(bus => (
+                      <CircleMarker
+                        key={bus.attributes.objectid}
+                        center={[bus.geometry.y, bus.geometry.x]}
+                        radius={8}
+                        fillColor={route.color}
+                        color='white'
+                        fillOpacity={1}
+                        weight={2.5}
+                        className="animate-pulse"
+                      />
+                    ))
+                  }
+                </span>
+              )})}
           </MapContainer>
       </div>
       
@@ -190,9 +309,13 @@ export default function Home() {
 
       {/*FAVOURITE ROUTES SECTION*/}
       <div>
-        {/**
-         * for favourites section
-         */}
+        <h1>Favourite Routes</h1>
+
+        {
+          favouriteRoutes.map((route, index) => {
+            
+          })
+        }
       </div>
     </div>
   )

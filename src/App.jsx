@@ -12,7 +12,6 @@ import InfoPage from './pages/Information'
 
 
 
-
 export default function App() {
   const location = useLocation()
   const prevlocation = useRef(location.pathname)

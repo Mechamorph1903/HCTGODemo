@@ -1,4 +1,3 @@
-import { Red, Green, Gold, Brown, Blue, Purple, Orange } from '../data/routes.js'
 import { NavLink } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -6,18 +5,56 @@ import { MapContainer, Polyline, CircleMarker, TileLayer, useMap} from "react-le
 import getRouteCentroid, { webMercatorToLatLng } from "../utils/coords.js"
 import scheduleGenerator, { minutesToClockString, getNextArrivalStatus } from '../utils/schedule.js'
 import { useEffect, useState } from 'react'
+import { db } from '../data/firebase.js'
+import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore'
 
 export default function RoutePage({route}){
-    const routes = [Red, Green, Gold, Blue, Purple, Orange, Brown]
-        
+    const [currRoute, setCurrRoute] = useState(null)
+    const [routeStops, setRouteStops] = useState([])
+    const [loading, setLoading] = useState(true)
     const [expandedStop, setExpandedStop] = useState(null)
 
-    const currRoute = routes.find(line => line.name === route)
+    // 📡 EFFECT: Fetch individual route metadata and its relational stops array
+    useEffect(() => {
+        async function fetchRouteDetails() {
+            try {
+                // 1. Get Route metadata document (document name is lowercase route string)
+                const routeId = route.toLowerCase();
+                const routeDocRef = doc(db, "routes", routeId);
+                const routeSnapshot = await getDoc(routeDocRef);
+                
+                if (routeSnapshot.exists()) {
+                    const routeData = { id: routeSnapshot.id, ...routeSnapshot.data() };
+                    setCurrRoute(routeData);
 
-    const minlat = Math.min(...currRoute.stops.map(stop => stop.coords[0]))
-    const minlng = Math.min(...currRoute.stops.map(stop => stop.coords[1]))
-    const maxlat = Math.max(...currRoute.stops.map(stop => stop.coords[0]))
-    const maxlng = Math.max(...currRoute.stops.map(stop => stop.coords[1]))
+                    // 2. Query stops drawer where 'routeId' matches this line
+                    const stopsQuery = query(collection(db, "stops"), where("routeId", "==", routeId));
+                    const stopsSnapshot = await getDocs(stopsQuery);
+                    const fetchedStops = [];
+                    
+                    stopsSnapshot.forEach((doc) => {
+                        fetchedStops.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    // Sort stops by stopNum so lines connect in correct order
+                    fetchedStops.sort((a, b) => a.stopNum - b.stopNum);
+                    setRouteStops(fetchedStops);
+                }
+                setLoading(false);
+            } catch (error) {
+                console.error("Error loading route sub-module data: ", error);
+                setLoading(false);
+            }
+        }
+        fetchRouteDetails();
+    }, [route]);
+
+    if (loading || !currRoute) return <div className="p-6 text-slate-500">⏳ Syncing route details...</div>;
+    
+    const minlat = Math.min(...routeStops.map(stop => stop.coords[0]))
+    const minlng = Math.min(...routeStops.map(stop => stop.coords[1]))
+    const maxlat = Math.max(...routeStops.map(stop => stop.coords[0]))
+    const maxlng = Math.max(...routeStops.map(stop => stop.coords[1]))
 
 
     function BoundSetter(){
@@ -69,7 +106,7 @@ export default function RoutePage({route}){
                     <div id="Map" className='h-128 w-full p-5'>
                         {/* The map containg the routes path */}
                         <MapContainer
-                            center={getRouteCentroid(currRoute.stops)}
+                            center={getRouteCentroid(routeStops)}
                             maxZoom={17}
                             className="h-full w-full"
                             maxBounds={[[minlat, minlng], [maxlat, maxlng]]}
@@ -83,11 +120,11 @@ export default function RoutePage({route}){
 
                            
                                     <Polyline 
-                                    positions={currRoute.stops.sort((a, b) => a.stopNum - b.stopNum).map(stop => stop.coords)}
+                                    positions={routeStops.sort((a, b) => a.stopNum - b.stopNum).map(stop => stop.coords)}
                                     color={currRoute["color"]}
                                     weight={6}
                                     />
-                                    {currRoute["stops"].map((stop, index) => (
+                                    {routeStops.map((stop, index) => (
                                         <CircleMarker 
                                         key={index}
                                         center={stop.coords}
@@ -128,7 +165,7 @@ export default function RoutePage({route}){
                     <div className='border-l-2 border-l-slate-400 pl-4'>
                         {/* for the stops. expands to show arrival times and/or stop pictures*/}
                         {
-                            currRoute.stops.map((stop, index) => {
+                            routeStops.map((stop, index) => {
                                 // 1. Generate the stop's full array of times first
                                 const stopTimes = scheduleGenerator(
                                     stop.minuteOffset,
@@ -151,9 +188,13 @@ export default function RoutePage({route}){
                                     <div className='flex flex-row items-center justify-self-end'>
                                         <div id="transfers" className='mr-5 flex gap-5 '>
                                             {
-                                                stop.transfer[0] ? stop.transfer[1].map((transfer, index) => (
-                                                    <p className='text-xs' key={index}><span className='inline-block rounded-lg h-2 w-2' style={{backgroundColor: transfer}}></span></p>
-                                                )) : <p></p>
+                                                stop.transfer?.available && stop.transfer?.connections ? (
+                                                    stop.transfer.connections.split(", ").map((transferColor, tIdx) => (
+                                                        <p className='text-xs' key={tIdx}>
+                                                            <span className='inline-block rounded-lg h-2 w-2' style={{ backgroundColor: transferColor.trim().toLowerCase() }}></span>
+                                                        </p>
+                                                    ))
+                                                ) : <p></p>
                                             }
                                         </div>
                                         <div onClick={() => {

@@ -73,7 +73,7 @@ export const greenStops = [
         "transfer": [false, ""],
         "route": "Green Route (4th St)",
         "direction": "Outbound",
-        "coords": [31.335390396092492, -89.32972950667778],
+        "coords": [31.33559756281842, -89.32957679307945],
          "minuteOffset": 6
     },
     {
@@ -237,7 +237,7 @@ export const goldStops = [
         "transfer": [true, ["Green", "Brown"]],
         "route": "Gold Route (USM)",
         "direction": "Outbound",
-        "coords": [31.335390396092492, -89.32972950667778],
+        "coords": [31.33559756281842, -89.32957679307945],
         "minuteOffset": 0
     },
     {
@@ -247,7 +247,7 @@ export const goldStops = [
         "transfer": [false, ""],
         "route": "Gold Route (USM)",
         "direction": "Outbound",
-        "coords": [31.33389417841954, -89.32942407948113],
+        "coords": [31.33364514342889, -89.32936978406738],
         "minuteOffset": 1
     },
     {
@@ -377,7 +377,7 @@ export const goldStops = [
         "transfer": [true, ["Green", "Brown"]],
         "route": "Gold Route (USM)",
         "direction": "Outbound",
-        "coords": [31.335390396092492, -89.32972950667778],
+        "coords": [31.33559756281842, -89.32957679307945],
         "minuteOffset": 14
     }
 ];

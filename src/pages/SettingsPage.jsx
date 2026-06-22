@@ -1,20 +1,40 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Red, Green, Gold, Brown, Blue, Purple, Orange } from '../data/routes.js'
-
-const routes = [Red, Green, Gold, Blue, Purple, Orange, Brown]
-
+import { db } from '../data/firebase.js'
+import { collection, getDocs } from 'firebase/firestore'
 
 export default function SettingsPage() {
+  const [routes, setRoutes] = useState([])
+  const [loading, setLoading] = useState(true)
   const [favRoutes, setFavRoutes] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  useEffect(() => {
+    async function loadRoutes() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "routes"));
+        const cloudRoutes = [];
+        querySnapshot.forEach((doc) => {
+          cloudRoutes.push({ id: doc.id, ...doc.data() });
+        });
+        setRoutes(cloudRoutes);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error setting up options pane array structures: ", error);
+        setLoading(false);
+      }
+    }
+    loadRoutes();
+  }, []);
 
   const toggleFav = (name) => {
     setFavRoutes(prev =>
       prev.includes(name) ? prev.filter(r => r !== name) : [...prev, name]
     )
   }
+
+  if (loading) return <div className="p-6 text-slate-500">⏳ Reading profile settings...</div>;
 
   return (
     <div className="flex flex-col h-full text-black overflow-y-auto [&::-webkit-scrollbar]:hidden">

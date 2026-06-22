@@ -26,7 +26,7 @@ export const Blue = {
     frequency: [60, 30],
     info: "Our Longest route that spans the width of hattiesburg! Runs along Hardy Street from Downtown to Turtle Creek Mall, serving USM and major retail areas.",
     isDualBus: false,
-    isDelayed: [false, []]// 
+    isDelayed: [false, 0]// 
     }
 
 export const Brown = { 
@@ -40,7 +40,7 @@ export const Brown = {
     frequency: [45],
     info: "Runs north along Highway 42 from Downtown through residential neighborhoods to North Hattiesburg.",
     isDualBus: false,
-    isDelayed: [false, []]// 
+    isDelayed: [false, 0]// 
     }
 
 export const Gold = { 
@@ -54,7 +54,7 @@ export const Gold = {
     frequency: [15],
     info: "This Route goes through and around the beautiful campus of the University of Southern Mississippi, home of the Golden Eagles. Recommended for students getting around campus!",
     isDualBus: true,
-    isDelayed: [false, []]// 
+    isDelayed: [false, 0]// 
     }
 
 export const Purple = { 
@@ -68,7 +68,7 @@ export const Purple = {
     frequency: [50],
     info: "Connects Downtown to Palmer's Crossing and the JM Tatum Industrial corridor via Edwards Street.",
     isDualBus: false,
-    isDelayed: [false, []]// 
+    isDelayed: [false, 0]// 
     }
 
 export const Orange = { 
@@ -81,7 +81,7 @@ export const Orange = {
     offlineMap: "", frequency: [45],
     info: "Runs through South Hattiesburg via Broadway Drive, serving William Carey University and the Walmart on Highway 49.",
     isDualBus: false,
-    isDelayed: [false, []]// 
+    isDelayed: [false, 0]// 
     }
 
 export const Red = { 
@@ -95,6 +95,6 @@ export const Red = {
     frequency: [40],
     info: "Serves the Country Club Road corridor, Cloverleaf area, and connects to William Carey University.",
     isDualBus: false,
-    isDelayed: [false, []]// 
+    isDelayed: [false, 0]// 
     }
          
