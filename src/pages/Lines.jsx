@@ -1,4 +1,4 @@
-import RoutePill from "../components/BusPill"
+import RoutePill from "../components/RoutePill.jsx"
 import { useState, useEffect } from "react"
 import { NavLink } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -46,7 +46,7 @@ export default function Lines() {
               to={`/${route.name}`}
               className="snap-center"
             >
-              <RoutePill name={route.name} color={route.color} alt={route.alt} passthrough={route.passThru}/>
+              <RoutePill name={route.name} color={route.color} alt={route.alt} passthrough={route.passThru} routeStatus={route.routeStatus}/>
             </NavLink>
           ))
         }

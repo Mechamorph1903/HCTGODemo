@@ -19,7 +19,7 @@ export default function Home() {
   const [favouriteRoutes, setFavouriteRoutes] = useState(["blue", "green"])
 
 
-  // 📡 EFFECT 1: Fetch Routes and Stops from Cloud Firestore on Boot
+  //EFFECT 1: Fetch Routes and Stops from Cloud Firestore on Boot
   useEffect(() => {
     async function downloadCloudTransitData() {
       try {
@@ -49,7 +49,7 @@ export default function Home() {
     downloadCloudTransitData();
   }, []);
 
-  // 🚌 EFFECT 2: Live ESRI/ArcGIS Bus Tracker API (runs every 5 seconds)
+  //EFFECT 2: Live ESRI/ArcGIS Bus Tracker API (runs every 5 seconds)
   useEffect(() => {
 
     const fetchBusLive = async () => {

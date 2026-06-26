@@ -1,7 +1,13 @@
     //This function is what will be used to generate the stop times for stops in a route
     //It takes the minute offset of a stop and calculate all arrival times of that stop between 6:30am(390 mins after midnight) and 6:30pm(1110mins after midnight)
 
-    export default function scheduleGenerator(minuteOffset, startTime, endTime, frequency, isDualBus){
+    export default function scheduleGenerator(minuteOffset, startTime, endTime, frequency, isDualBus, routeStatus){
+        let adjustedOffset = minuteOffset
+
+        if (routeStatus.status === "Active" && routeStatus.type === "Delay"){
+            adjustedOffset = minuteOffset + (Number(routeStatus.time) || 0)
+        }
+        
         const schedule = []
         
         const currentFrequency =  isDualBus ? (frequency[1] || frequency[0]) : frequency[0]
@@ -10,7 +16,7 @@
 
 
         while (counter <= endTime ){
-            let arrivalTime = counter + minuteOffset //adds the minuteOffset to what counter currently is
+            let arrivalTime = counter + adjustedOffset //adds the minuteOffset to what counter currently is
 
 
             if (arrivalTime <= endTime) {

@@ -87,6 +87,7 @@ export default function RoutePage({route}){
 
     //     snaproutes()
     // },[])
+
     return(
         <div className='text-black p-6 pt-3 relative'>
             <div className='flex justify-between items-center h-15 sticky top-0 left-0 z-[2000] bg-white/70 backdrop-blur-md border-b border-slate-200/50 mb-3'>
@@ -95,7 +96,32 @@ export default function RoutePage({route}){
             </div>
             <div className='grid'>
                 <div>
-                    
+                    {currRoute.routeStatus?.status === "Active" && (
+                        <div className="mb-6 p-4 bg-amber-500/50 border border-slate-800/10 rounded-xl shadow-md text-sm">
+                            <h2 className="font-bold text-whblackite uppercase tracking-wide flex items-center gap-2 mb-1">
+                            {currRoute.routeStatus.type === "Delay" ? "⚠️" : "🚧"} Notice: {currRoute.routeStatus.type} Active!
+                            </h2>
+                            
+                            <p className="text-amber-900 font-medium leading-relaxed mb-2">
+                            {currRoute.routeStatus.type === "Delay" 
+                                ? "This route is currently experiencing a delay. Stop times are adjusted accordingly." 
+                                : "This route is currently taking a detour and is running on a modified pattern."
+                            }
+                            </p>
+                            
+                            {currRoute.routeStatus.details && (
+                            <p className="text-white text-xs italic bg-slate-600/40 p-2.5 rounded-lg border border-slate-800/60 mb-2">
+                                💬 Dispatch Notes: {currRoute.routeStatus.details}
+                            </p>
+                            )}
+                            
+                            {currRoute.routeStatus.time !== 0 && (
+                            <p className="text-amber-800 font-mono font-bold text-xs inline-block rounded-md">
+                                ⏱️ Estimated Delay: +{currRoute.routeStatus.time} mins
+                            </p>
+                            )}
+                        </div>
+                    )}
                     <div className='pl-5 rounded-sm' style={{ borderLeft: `4px solid ${currRoute.color}` }}>
                         <h1 className='text-2xl'>{currRoute.name} Route {currRoute.alt}</h1>
                         {/*This is where we put the lil info about the route and the times i.e use this route to get through bla bla bla*/}
@@ -172,7 +198,8 @@ export default function RoutePage({route}){
                                     currRoute.runtime.start,
                                     currRoute.runtime.end,
                                     currRoute.frequency,
-                                    currRoute.isDualBus
+                                    currRoute.isDualBus,
+                                    currRoute.routeStatus
                                 );
                                 // 2. Calculate its next arrival status instantly
                                 const nextArrival = getNextArrivalStatus(stopTimes, currRoute.runtime.end);
