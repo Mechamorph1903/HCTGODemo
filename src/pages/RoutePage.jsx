@@ -1,12 +1,12 @@
 import { NavLink } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { MapContainer, Polyline, CircleMarker, TileLayer, useMap} from "react-leaflet"
 import getRouteCentroid, { webMercatorToLatLng } from "../utils/coords.js"
 import scheduleGenerator, { minutesToClockString, getNextArrivalStatus } from '../utils/schedule.js'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { db } from '../data/firebase.js'
 import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore'
+import mapboxgl from 'mapbox-gl'
 
 export default function RoutePage({route}){
     const [currRoute, setCurrRoute] = useState(null)
@@ -49,44 +49,95 @@ export default function RoutePage({route}){
         fetchRouteDetails();
     }, [route]);
 
+    //mapbox refs
+    const map = useRef(null)
+    const mapContainer = useRef(null)
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
+
+     // rendering map
+    useEffect(() => {
+        if (!routeStops.length || !currRoute || !mapContainer.current) return
+        if (map.current) return // already initialized
+
+        const minlat = Math.min(...routeStops.map(stop => stop.coords[0]))
+        const minlng = Math.min(...routeStops.map(stop => stop.coords[1]))
+        const maxlat = Math.max(...routeStops.map(stop => stop.coords[0]))
+        const maxlng = Math.max(...routeStops.map(stop => stop.coords[1]))
+
+        map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [-89.2903, 31.3271],
+        zoom: 12
+        })
+
+        map.current.on('load', () => {
+            map.current.fitBounds([[minlng, minlat], [maxlng, maxlat]], { padding: 40 })
+            
+            const stops =  routeStops.sort((a,b) => a.stopNum - b.stopNum)
+
+            //Line
+            map.current.addSource(`route-${currRoute.id}`, {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    geometry: {
+                    type: 'LineString',
+                    coordinates: stops.map(stop => [stop.coords[1], stop.coords[0]])
+                    }
+                }
+            })
+
+            map.current.addLayer({
+                id: `route-line-${currRoute.id}`,
+                type: 'line',
+                source: `route-${currRoute.id}`,
+                paint: {
+                    'line-color': currRoute.color,
+                    'line-width': 4
+                }
+            })
+
+            //Stops
+
+            map.current.addSource(`stops-${currRoute.id}`, {
+            type: `geojson`,
+            data: {
+              type: 'FeatureCollection',
+              features: stops.map(stop => ({
+                type: 'Feature',
+                properties: {
+                  id: stop.id,
+                  name: stop.name,
+                  route: stop.routeId
+                },
+                geometry: {
+                  type: "Point",
+                  coordinates: [stop.coords[1], stop.coords[0]]
+                }
+              }))
+            }
+          })
+
+          map.current.addLayer({
+            id: `stops-stop-${currRoute.id}`,
+            type: 'circle',
+            source: `stops-${currRoute.id}`,
+            paint: {
+              'circle-radius': 4,
+              'circle-color': '#ffffff',
+              'circle-stroke-color': currRoute.color,
+              'circle-stroke-width': 2
+            }
+
+          })
+
+        })  
+      }, [currRoute, routeStops])
+
     if (loading || !currRoute) return <div className="p-6 text-slate-500">⏳ Syncing route details...</div>;
     
-    const minlat = Math.min(...routeStops.map(stop => stop.coords[0]))
-    const minlng = Math.min(...routeStops.map(stop => stop.coords[1]))
-    const maxlat = Math.max(...routeStops.map(stop => stop.coords[0]))
-    const maxlng = Math.max(...routeStops.map(stop => stop.coords[1]))
-
-
-    function BoundSetter(){
-        const map = useMap()
-
-        
-        map.fitBounds([[minlat, minlng], [maxlat, maxlng]])
-
-        return null
-    }
-
     
-    {/**
-        this area is for route snapping. claude tells me i have to get the coordinates in lng,lat order deperated by a 
-        semi-colon and then put them all in a string to send to an engine. i did this but orsm says the request is bad so ill have to put in on hold for now
-        orsm because it is free will have to use whatever hct is currently using icl
-        */}
-    // const radiuses = currRoute.stops.map(() => 25).join(";")
-
-    // const [snappedRoutes, getSnappedRoutes] = useState([])
-
-    // const routestring = currRoute.stops.map(stop => `${stop.coords[1]},${stop.coords[0]}`).join(";")
-    // useEffect(() => {
-    //     const snaproutes = async () => {
-    //         const response = await fetch(`https://router.project-osrm.org/match/v1/driving/${routestring}?overview=full&geometries=geojson&radiuses=${radiuses}`)
-    //         const data = await response.json()
-    //         getSnappedRoutes(data)
-    //         console.log(snappedRoutes)
-    //     }
-
-    //     snaproutes()
-    // },[])
 
     return(
         <div className='text-black p-6 pt-3 relative'>
@@ -129,55 +180,10 @@ export default function RoutePage({route}){
                         <p className='text-slate-500'>Run Time: {minutesToClockString(currRoute.runtime.start)} to {minutesToClockString(currRoute.runtime.end)}</p>
                         <p className='text-slate-500'>Frequency: {currRoute.frequency.length === 2 ? `${currRoute.frequency[1]} minutes (2 Buses) - ${currRoute.frequency[0]} minutes (1 Bus)` : `${currRoute.frequency[0]} minutes`} </p>
                     </div>
-                    <div id="Map" className='h-128 w-full p-5'>
-                        {/* The map containg the routes path */}
-                        <MapContainer
-                            center={getRouteCentroid(routeStops)}
-                            maxZoom={17}
-                            className="h-full w-full"
-                            maxBounds={[[minlat, minlng], [maxlat, maxlng]]}
-                            maxBoundsViscosity={1}
-                        >
-                            <BoundSetter/>
-                            <TileLayer
-                                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                        />
 
-                           
-                                    <Polyline 
-                                    positions={routeStops.sort((a, b) => a.stopNum - b.stopNum).map(stop => stop.coords)}
-                                    color={currRoute["color"]}
-                                    weight={6}
-                                    />
-                                    {routeStops.map((stop, index) => (
-                                        <CircleMarker 
-                                        key={index}
-                                        center={stop.coords}
-                                        radius={2}
-                                        fillColor="white"
-                                        color='grey'
-                                        fillOpacity={4}
-                                        weight={1}
-                                        />
-                                    ))}
-                                    {/* {
-                                        busPositions.map( bus => (
-                                        <CircleMarker
-                                            key={bus.attributes.objectid}
-                                            center={[bus.geometry.y, bus.geometry.x]}
-                                            radius={5}
-                                            fillColor={getBusColor(bus.attributes.created_user)}
-                                            color='white'
-                                            fillOpacity={4}
-                                            weight={1}
-                                        />
-                                        )
+                    {/**Mapbox container */}
+                    <div id="Map" ref={mapContainer} className='h-128 w-full rounded-xl'/>
 
-                                        )
-                                    } */}
-                        </MapContainer>
-                    </div>
                     <div className='flex flex-row gap-5 items-center mb-5'>
                         <p>Route Transfers</p>
                         <span className='inline-block rounded-lg h-2 w-2 bg-red-700'></span>

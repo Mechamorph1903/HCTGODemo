@@ -1,22 +1,34 @@
-import { MapContainer, TileLayer, useMap, Marker, Popup, CircleMarker,Polyline } from 'react-leaflet'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { db } from '../data/firebase.js'
 import { collection, getDocs } from 'firebase/firestore'
+import mapboxgl from 'mapbox-gl'
 
 
 export default function Home() {
   const [routes, setRoutes] = useState([])       // Holds our 7 color lines metadata
   const [allStops, setAllStops] = useState([])   // Holds all stops globally for mapping
-  const [loading, setLoading] = useState(true)
-    
+  const [activeFilter, setActiveFilter] = useState(null)
+  //mapbox refs
+  const mapContainer = useRef(null) // points at the div
+  const map = useRef(null) // stores the mapbox instance
+  mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
   //This is where we will store and constantly update live bus positions
   const [busPositions, setBusPositions] = useState([])
-  const [activeFilter, setActiveFilter] = useState(null) // null = Show All, or 'Blue', 'Red', etc.
+ //this gets the created_user from the api and matches it to the appropriate object in the routes array so as to get the right color for bus icons
+  const getBusColor = (createdUser) => {
+    const route = routes.find(route => createdUser.includes(route.name))
+    if(route){
+      return route.color
+    }
+    return "Gray"
+  }
+
   const [favouriteRoutes, setFavouriteRoutes] = useState(["blue", "green"])
+
 
 
   //EFFECT 1: Fetch Routes and Stops from Cloud Firestore on Boot
@@ -39,10 +51,9 @@ export default function Home() {
         });
         setAllStops(cloudStops);
 
-        setLoading(false);
       } catch (error) {
         console.error("Error connecting to Transit Cloud Firestore: ", error);
-        setLoading(false);
+       
       }
     }
 
@@ -67,55 +78,167 @@ export default function Home() {
     }
   }, [])
 
-  //this gets the created_user from the api and matches it to the appropriate object in the routes array so as to get the right color for bus icons
-  const getBusColor = (createdUser) => {
-    const route = routes.find(route => createdUser.includes(route.name))
-    if(route){
-      return route.color
+  //EFFECT 3: create map object
+  useEffect(() => {
+  if (map.current) return
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [-89.2903, 31.3271],
+      zoom: 12
+    })
+  }, [])
+
+  //EFFECT 4: creates mapbox object with props and checks if mapbox object is drawn nd if stopdata is ready before adding layers then adds the layers such as stops and lines
+  useEffect(() => {
+    if (!map.current || !allStops.length || !routes.length) return//  map not initialized or firebase not ready
+
+    const minlat = Math.min(...allStops.map(s => s.coords[0]))
+    const minlng = Math.min(...allStops.map(s => s.coords[1]))
+    const maxlat = Math.max(...allStops.map(s => s.coords[0]))
+    const maxlng = Math.max(...allStops.map(s => s.coords[1]))
+    const addLayers = () => {
+      routes.forEach(route => {
+        const routeStops = allStops
+          .filter(stop => stop.routeId === route.id)
+          .sort((a, b) => a.stopNum - b.stopNum)
+         
+          if(!map.current.getSource(`route-${route.id}`)){
+          map.current.addSource(`route-${route.id}`, {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: routeStops.map(stop => [stop.coords[1], stop.coords[0]])
+            }
+          }
+        })
+
+        map.current.addLayer({
+          id: `route-line-${route.id}`,
+          type: 'line',
+          source: `route-${route.id}`,
+          paint: {
+            'line-color': route.color,
+            'line-width': 4
+          }
+        })
+        }
+
+        if(!map.current.getSource(`stops-${route.id}`)){
+          map.current.addSource(`stops-${route.id}`, {
+            type: `geojson`,
+            data: {
+              type: 'FeatureCollection',
+              features: routeStops.map(stop => ({
+                type: 'Feature',
+                properties: {
+                  id: stop.id,
+                  name: stop.name,
+                  route: stop.routeId
+                },
+                geometry: {
+                  type: "Point",
+                  coordinates: [stop.coords[1], stop.coords[0]]
+                }
+              }))
+            }
+          })
+
+          map.current.addLayer({
+            id: `stops-stop-${route.id}`,
+            type: 'circle',
+            source: `stops-${route.id}`,
+            paint: {
+              'circle-radius': 4,
+              'circle-color': '#ffffff',
+              'circle-stroke-color': route.color,
+              'circle-stroke-width': 2
+            }
+
+          })
+        }
+        
+    })
     }
-    return "Gray"
-}
-  const visibleRoutes = activeFilter 
-    ? routes.filter(r => r.name === activeFilter) 
-    : routes
-  const getGroupedStops = () => {
-    const groups = {};
+    
+    if (map.current.isStyleLoaded()) {
+      map.current.fitBounds([[minlng, minlat], [maxlng, maxlat]], { padding: 40 })
+      addLayers() // style already loaded, run immediately
+    } else {
+      map.current.on('load', () => {
+        map.current.fitBounds([[minlng, minlat], [maxlng, maxlat]], { padding: 40 })
+        addLayers()
+      } // wait for style
+  )}
+  }, [allStops, routes])  // runs whenever firebase data arrives
 
-    // Filter out stops belonging to currently visible routes
-    const allowedRouteIds = visibleRoutes.map(r => r.id);
-    const visibleStops = allStops.filter(stop => allowedRouteIds.includes(stop.routeId));
+  //EFFECT 5: rendering bus on mapbox object
+    useEffect(() => {
+      if (!map.current || !busPositions.length || !routes.length) return
 
-    visibleStops.forEach(stop => {
-      // Create a unique coordinate key identifier string (e.g., "31.32,-89.29")
-      const coordKey = `${stop.coords[0].toFixed(5)},${stop.coords[1].toFixed(5)}`;
-      
-      if (!groups[coordKey]) {
-        groups[coordKey] = {
-          coords: stop.coords,
-          names: new Set([stop.name]),
-          servingRoutes: new Set([stop.routeId]), // Tracks which routes pass through here
-          stopNumbers: []
-        };
-      } else {
-        groups[coordKey].names.add(stop.name);
-        groups[coordKey].servingRoutes.add(stop.routeId);
+      const filteredBuses = activeFilter 
+        ? busPositions.filter(bus => bus.attributes.created_user.includes(activeFilter))
+        : busPositions
+
+      const busGeoJSON = {
+        type: 'FeatureCollection',
+        features: filteredBuses.map(bus => ({
+          type: 'Feature',
+          properties: { color: getBusColor(bus.attributes.created_user) },
+          geometry: {
+            type: 'Point',
+            coordinates: [bus.geometry.x, bus.geometry.y]
+          }
+        }))
       }
-      groups[coordKey].stopNumbers.push(`${stop.routeId.toUpperCase()} #${stop.stopNum}`);
-    });
 
-    return Object.values(groups);
-  };
+      if (!map.current.isStyleLoaded()) return
+
+      if (!map.current.getSource('bus-positions')) {
+        map.current.addSource('bus-positions', { type: 'geojson', data: busGeoJSON })
+        map.current.addLayer({
+          id: 'bus-layer',
+          type: 'circle',
+          source: 'bus-positions',
+          paint: {
+            'circle-radius': 8,
+            'circle-color': ['get', 'color'],
+            'circle-stroke-color': '#ffffff',
+            'circle-stroke-width': 2
+          }
+        })
+      } else {
+        map.current.getSource('bus-positions').setData(busGeoJSON)
+      }
+
+    }, [busPositions, activeFilter])
+
+  useEffect(() => {
+    if (!map.current || !routes.length) return
+    if (!map.current.getLayer(`route-line-${routes[0].id}`)) return
 
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-slate-50 text-slate-600 font-semibold">
-        <div className="text-center">
-          <p className="text-xl animate-pulse">🛰️ Syncing with HubCity Transit Cloud...</p>
-        </div>
-      </div>
-    );
-  }
+    if(activeFilter === null){
+      routes.forEach(route => {
+        map.current.setLayoutProperty(`stops-stop-${route.id}`, 'visibility', 'visible')
+        map.current.setLayoutProperty(`route-line-${route.id}`, 'visibility', 'visible')
+      })
+    } else {
+      routes.forEach(route => {
+        if(route.name === activeFilter){
+          map.current.setLayoutProperty(`stops-stop-${route.id}`, 'visibility', 'visible')
+          map.current.setLayoutProperty(`route-line-${route.id}`, 'visibility', 'visible')
+        } else{
+          map.current.setLayoutProperty(`stops-stop-${route.id}`, 'visibility', 'none')
+          map.current.setLayoutProperty(`route-line-${route.id}`, 'visibility', 'none')
+        }
+      })
+    }
+  },[activeFilter])
+ 
+
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-black text-xl font-sans antialiased mx-auto shadow-xl">
@@ -193,118 +316,8 @@ export default function Home() {
 
 
       {/*GENERAL MAP */}
-      <div id="Map" className='h-128 w-full p-5 overflow-hidden relative'>
-          <MapContainer 
-            center={[ 31.3271, -89.2903]} 
-            zoom={11.9} 
-            minZoom={11}
-            maxZoom={17}
-            maxBounds={[[31.252, -89.4198], [31.3724, -89.1663]]}
-            maxBoundsViscosity={1.0} 
-            scrollWheelZoom={false} 
-            className='h-full w-full z-10 rounded-xl'>
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              {/* //what we have done here is populated the leaflet map object with route points from stops.js and connecting them
-              //with colored lines representing the routes they belong on. lines arent perfect yet but will get there
-              // my plan for transfer points is for the point to have all colours of routes on transfers */}
-              {/* Loop ONLY through filtering conditions */}
-              {visibleRoutes.map((route, index) =>{ 
-                const routeStops = allStops
-                  .filter(stop => stop.routeId === route.id)
-                  .sort((a, b) => a.stopNum - b.stopNum);
-                
-                
-                return (
-                <span key={index}>
-                  {/* 
-                      SOrt by stop num to get accurate lines manually go to the stop.js and do this also have to add missing stops
-                      and to close the stop lines repeat the first stop twice but different stopnums as 1 and nth(last)
-                  */}
-                  {routeStops.length > 0 && (
-                      <Polyline 
-                        positions={routeStops.map(stop => stop.coords)}
-                        color={route.color}
-                        weight={5}
-                        opacity={activeFilter ? 0.95 : 0.65}
-                      />
-                    )}
-                  
-                 {/* LAYER 2: Draw the interactive combined points on top */}
-                  {getGroupedStops().map((groupedStop, idx) => {
-                    const routeIdsArray = Array.from(groupedStop.servingRoutes);
-                    // If a stop serves multiple routes, color the circle dark slate, otherwise use the line color
-                    const markerColor = routeIdsArray.length > 1 ? '#1e293b' : routes.find(r => r.id === routeIdsArray[0])?.color || '#334155';
-
-                    return (
-                      <CircleMarker 
-                        key={`group_stop_${idx}`}
-                        center={groupedStop.coords}
-                        radius={4} 
-                        fillColor="white"
-                        color={markerColor}
-                        fillOpacity={1}
-                        weight={2.5}
-                      >
-                        <Popup>
-                          <div className="text-sm font-sans min-w-[160px]">
-                            {/* Combines slash names if they differ across routes */}
-                            <h4 className="font-bold text-slate-900 leading-tight mb-1">
-                              {Array.from(groupedStop.names).join(' / ')}
-                            </h4>
-                            
-                            <div className="border-t border-slate-100 pt-1.5 mt-1.5">
-                              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Serves Lines:</p>
-                              <div className="flex flex-wrap gap-1">
-                                {routeIdsArray.map(rId => {
-                                  const rData = routes.find(r => r.id === rId);
-                                  return (
-                                    <span 
-                                      key={rId} 
-                                      className="px-1.5 py-0.5 text-[10px] font-extrabold text-white rounded uppercase"
-                                      style={{ backgroundColor: rData?.color || '#94a3b8' }}
-                                    >
-                                      {rData?.name || rId}
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                            </div>
-
-                            <p className="text-[11px] text-slate-500 mt-2 font-medium bg-slate-50 p-1 rounded border border-slate-100">
-                              📌 {groupedStop.stopNumbers.join(', ')}
-                            </p>
-                          </div>
-                        </Popup>
-                      </CircleMarker>
-                    );
-                  })}
-
-                  {/* Filter live buses map indicators matching active view bounds */}
-                  {busPositions
-                    .filter(bus => bus.attributes.created_user.includes(route.name))
-                    .map(bus => (
-                      <CircleMarker
-                        key={bus.attributes.objectid}
-                        center={[bus.geometry.y, bus.geometry.x]}
-                        radius={8}
-                        fillColor={route.color}
-                        color='white'
-                        fillOpacity={1}
-                        weight={2.5}
-                        className="animate-pulse"
-                      />
-                    ))
-                  }
-                </span>
-              )})}
-          </MapContainer>
-      </div>
-      
-
-
+      <div id="Map" ref={mapContainer} className='h-128 w-full overflow-hidden rounded-xl' />
+          
             
 
       {/*FAVOURITE ROUTES SECTION*/}
