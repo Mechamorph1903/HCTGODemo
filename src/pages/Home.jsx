@@ -295,6 +295,7 @@ export default function Home() {
           All Routes
         </button>
         {routes.map(route => (
+          // make this that when yu click on an active filter it reverts to all routes
           <button
             key={route.name}
             onClick={() => setActiveFilter(route.name)}
@@ -316,7 +317,7 @@ export default function Home() {
 
 
       {/*GENERAL MAP */}
-      <div id="Map" ref={mapContainer} className='h-128 w-full overflow-hidden rounded-xl' />
+      <div id="Map" ref={mapContainer} className='h-128 w-110 overflow-hidden rounded-xl' />
           
             
 
