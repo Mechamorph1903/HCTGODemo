@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { NavLink } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { db } from '../data/firebase.js'
 import { collection, getDocs } from 'firebase/firestore'
 import mapboxgl from 'mapbox-gl'
+import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress } from '../utils/navigation.js'
 
 
 export default function Home() {
@@ -215,6 +216,8 @@ export default function Home() {
 
     }, [busPositions, activeFilter])
 
+
+  // EFFECT 6: ROute Filtering on MAP
   useEffect(() => {
     if (!map.current || !routes.length) return
     if (!map.current.getLayer(`route-line-${routes[0].id}`)) return
@@ -238,6 +241,21 @@ export default function Home() {
     }
   },[activeFilter])
  
+
+  
+
+  const groupedStops = useMemo(() => stopGrouper(allStops), [allStops])
+  const adjacencyList = useMemo(() => buildTransitGraph(groupedStops), [allStops])
+  const {distances: distanceObj, parents: parentObj} = useMemo(() => {
+    if (!Object.keys(adjacencyList).length) return { distances: {}, parents: {} }
+    return djisktras(adjacencyList, "Walmart @ 49")
+  }, [adjacencyList])
+  const bestPath = getPath(parentObj, "Train Depot")
+  const nearestStop = findNearestStop(31.3271, -89.2903, allStops)
+  useEffect(() => {
+    geocodeAddress("Walmart").then(result => console.log(result))
+  }, [])
+  
 
 
   return (
