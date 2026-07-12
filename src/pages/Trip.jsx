@@ -24,7 +24,7 @@ export default function Trip() {
     const [tripPath, setTripPath] = useState([])
 
     const groupedStops = useMemo(() => stopGrouper(allStops), [allStops])
-    const adjacencyList = useMemo(() => buildTransitGraph(groupedStops), [allStops])
+    const adjacencyList = useMemo(() => buildTransitGraph(groupedStops, routes), [allStops])
     
     
     const debouncedOrigin = useDebounce(origin, 400)

@@ -22,7 +22,7 @@ export const stopGrouper = (stops) => {
 
 
 
-export const buildTransitGraph = (groupedStops) => {
+export const buildTransitGraph = (groupedStops, routes) => {
 	const adjacencyList = {}
 
 	for(const route in groupedStops){
@@ -50,6 +50,24 @@ export const buildTransitGraph = (groupedStops) => {
 						weight: nextStop.minuteOffset - stop.minuteOffset
 					})
 				}
+			}
+		})
+	}
+
+	//transfer edges
+
+	for(const route in groupedStops){
+		stops = groupedStops[route]
+
+		stops.forEach((stop,index) => {
+			if(stop.transfer.available === true){
+				let connectedRoutes = stop.transfer.connections.split(",")
+
+				for(const line in connectedRoutes){
+					
+				}
+
+
 			}
 		})
 	}
