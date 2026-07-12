@@ -11,6 +11,7 @@ library.add(fas, far, fab)
 const tabs = [
   { to: '/',        label: 'Home',     icon: "f-solid fa-house" },
   { to: '/Lines',   label: 'Routes',   icon: "fa-solid fa-bus-side" },
+  { to: '/Trip',    label: 'Trip',     icon: "fa-solid fa-route"},
   { to: '/Explore',  label: 'Explore',   icon: "fa-regular fa-compass" },
   { to: '/Settings',label: 'Settings', icon: "fa-solid fa-user-gear"},
 ]

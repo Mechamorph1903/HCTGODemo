@@ -5,7 +5,6 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { db } from '../data/firebase.js'
 import { collection, getDocs } from 'firebase/firestore'
 import mapboxgl from 'mapbox-gl'
-import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress } from '../utils/navigation.js'
 
 
 export default function Home() {
@@ -98,6 +97,11 @@ export default function Home() {
     const minlng = Math.min(...allStops.map(s => s.coords[1]))
     const maxlat = Math.max(...allStops.map(s => s.coords[0]))
     const maxlng = Math.max(...allStops.map(s => s.coords[1]))
+
+    // console.log("Min Lat:", minlat)
+    // console.log("Min Lng:", minlng)
+    // console.log("Max Lat:", maxlat)
+    // console.log("Max Lng:", maxlng)
     const addLayers = () => {
       routes.forEach(route => {
         const routeStops = allStops
@@ -242,21 +246,6 @@ export default function Home() {
   },[activeFilter])
  
 
-  
-
-  const groupedStops = useMemo(() => stopGrouper(allStops), [allStops])
-  const adjacencyList = useMemo(() => buildTransitGraph(groupedStops), [allStops])
-  const {distances: distanceObj, parents: parentObj} = useMemo(() => {
-    if (!Object.keys(adjacencyList).length) return { distances: {}, parents: {} }
-    return djisktras(adjacencyList, "Walmart @ 49")
-  }, [adjacencyList])
-  const bestPath = getPath(parentObj, "Train Depot")
-  const nearestStop = findNearestStop(31.3271, -89.2903, allStops)
-  useEffect(() => {
-    geocodeAddress("Walmart").then(result => console.log(result))
-  }, [])
-  
-
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-black text-xl font-sans antialiased mx-auto shadow-xl">
@@ -274,30 +263,7 @@ export default function Home() {
 
 
 
-      {/**SEARCH BAR SECTION */}
-      <div className='px-5 pt-4 pb-2 bg-white '>
-        {/* //planing to implement a way to a system, similar to transit, where you can begin your journey in app and search for destination while it calculates best way to use transit there */}
-        <h1 className='text-2xl font-semibold font-black tracking-tight text-slate-900 mb-3'>Where to next?</h1>
-        <div className='relative flex items-center mb-2'>
-          <div className="absolute left-4 text-slate-400">
-            <FontAwesomeIcon icon="fa-solid fa-magnifying-glass" className="text-sm" />
-          </div>
-          <input 
-            type="text" 
-            name="search-bar" 
-            className='w-full pl-11 pr-24 py-3 bg-slate-100 text-slate-900 placeholder-slate-400 font-medium text-base rounded-2xl border border-transparent focus:outline-none focus:bg-white focus:border-blue-500/50 transition-all shadow-inner' 
-            placeholder='Search destinations, lines...'
-          />
-          <button 
-            type="button" 
-            className='absolute right-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-sm rounded-xl transition-all shadow-sm'
-          >
-            Go
-          </button>
-        </div>
-      </div>
-
-
+      
 
 
       {/*TOP MAP FILTERS: Route Sort Selector Row */}

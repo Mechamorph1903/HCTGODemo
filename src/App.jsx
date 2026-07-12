@@ -9,6 +9,7 @@ import SettingsPage from './pages/SettingsPage'
 import ExplorePage from './pages/VisitHBG'
 import RoutePage from './pages/RoutePage'
 import InfoPage from './pages/Information'
+import Trip from './pages/Trip'
 
 
 
@@ -79,6 +80,7 @@ export default function App() {
               <Route path='/Lines' element={<Lines />} />
               <Route path='/Info' element={<InfoPage />} />
               <Route path='/Alerts' element={<NotificationsPage />} />
+              <Route path='/Trip' element={<Trip />} />
               <Route path='/Explore' element={<ExplorePage />} />
               <Route path='/Settings' element={<SettingsPage />} />
               <Route path='/Green' element={<RoutePage route="Green"/>} />

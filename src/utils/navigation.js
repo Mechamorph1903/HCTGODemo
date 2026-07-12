@@ -134,10 +134,29 @@ export function findNearestStop(lat, lng, allStops){
 	return closestStop
 }
 
+const sessionToken = crypto.randomUUID();
 
 export const geocodeAddress = async (searchText) => {
-	const url = `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(searchText)}&proximity=-89.2903,31.3271&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=5&country=US`
-	const data = await fetch(url)
-	const res = await data.json()
-	return res.features
+	const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(searchText)}&session_token=${sessionToken}&proximity=-89.2903,31.3271&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=5&country=US&types=address,poi,place`
+	try {
+    const data = await fetch(url);
+    const res = await data.json();
+    return res.suggestions || [];
+  } catch (error) {
+    console.error("Geocoding fetch failed:", error);
+    return [];
+  }
+}
+
+export const retrievePlace = async (suggestion_id) => {
+	const url = `https://api.mapbox.com/search/searchbox/v1/retrieve/${suggestion_id}?session_token=${sessionToken}&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`
+	try {
+    const data = await fetch(url);
+    const res = await data.json();
+	
+    return res.features[0].geometry.coordinates || [];
+  } catch (error) {
+    console.error("Geocoding fetch failed:", error);
+    return [];
+  }
 }
