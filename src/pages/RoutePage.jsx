@@ -222,7 +222,7 @@ export default function RoutePage({route}){
                                         <div id="transfers" className='mr-5 flex gap-5 '>
                                             {
                                                 stop.transfer?.available && stop.transfer?.connections ? (
-                                                    stop.transfer.connections.split(", ").map((transferColor, tIdx) => (
+                                                    stop.transfer.connections.map((transferColor, tIdx) => (
                                                         <p className='text-xs' key={tIdx}>
                                                             <span className='inline-block rounded-lg h-2 w-2' style={{ backgroundColor: transferColor.trim().toLowerCase() }}></span>
                                                         </p>

@@ -6,7 +6,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { db } from '../data/firebase.js'
 import { collection, getDocs } from 'firebase/firestore'
 import mapboxgl from 'mapbox-gl'
-import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace } from '../utils/navigation.js'
+import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey, pathToSegments} from '../utils/navigation.js'
 import { useDebounce } from "../hooks/debounce.js";
 
 export default function Trip() {
@@ -24,7 +24,18 @@ export default function Trip() {
     const [tripPath, setTripPath] = useState([])
 
     const groupedStops = useMemo(() => stopGrouper(allStops), [allStops])
-    const adjacencyList = useMemo(() => buildTransitGraph(groupedStops, routes), [allStops])
+    const adjacencyList = useMemo(() => buildTransitGraph(groupedStops, routes), [groupedStops, routes])
+    const routeLookup = useMemo(() => {
+        const map = {}
+        for (const r of routes) map[r.id] = r
+        return map
+    }, [routes])
+
+    const stopLookup = useMemo(() => {
+        const map = {}
+        for (const s of allStops) map[nodeKey(s.routeId, s.name)] = s
+        return map
+    }, [allStops])
     
     
     const debouncedOrigin = useDebounce(origin, 400)
@@ -46,8 +57,21 @@ export default function Trip() {
         }
 
     }
-    
 
+    const planTrip = () =>{
+        const effectiveOrigin = originCoords || userLocation
+        if (!effectiveOrigin || !destinationCoords.length || !allStops.length || !Object.keys(adjacencyList).length) return
+
+        const nowMin =  new Date().getHours() * 60 + new Date().getMinutes()
+
+        const tripGraph = buildTripGraph(adjacencyList, effectiveOrigin, destinationCoords, allStops)
+        const { clock, parents } = djisktras(tripGraph, "ORIGIN", nowMin, stopLookup, routeLookup)
+        const bestPath = getPath(parents, "DESTINATION")
+        const segmentedPath = pathToSegments(bestPath)
+        setTripPath(segmentedPath)
+
+    }
+    
     useEffect(() => {
         async function downloadCloudTransitData() {
         try {
@@ -90,7 +114,7 @@ export default function Trip() {
         )
     }, [])
 
-    //getting sggestions for poimnts from mapbox
+    //getting suggestions for points from mapbox
     useEffect(() => {
         //when user selects a suggestion/ it sets destination selected to true preventing geocode from firing again
         if (!debouncedOrigin || originSelected) {
@@ -116,23 +140,70 @@ export default function Trip() {
 
     //djikstras for routing
     useEffect(() => {
-        const effectiveOrigin = originCoords || userLocation
-        if (!effectiveOrigin || !destinationCoords || !allStops.length) return
-        console.log(destinationCoords)
-        console.log(effectiveOrigin)
-        const nearestStopOrigin = findNearestStop(effectiveOrigin[0], effectiveOrigin[1], allStops)
-        const nearestStopDestination = findNearestStop(destinationCoords[0], destinationCoords[1], allStops)
-        const {distances, parents} = djisktras(adjacencyList, nearestStopOrigin.name)
-        const bestPath = getPath(parents, nearestStopDestination.name)
-        console.log(bestPath)
-        setTripPath(bestPath)
+        planTrip()
+    }, [originCoords, destinationCoords, userLocation, adjacencyList])
+
+    // useEffect(() => {
+    //     const effectiveOrigin = originCoords || userLocation
+    //     if (!effectiveOrigin || !destinationCoords.length || !allStops.length || !Object.keys(adjacencyList).length) return
+    //     const runRouting = async () => {
+    //         const { res, duration, geometry } = await getWalkingDirections(effectiveOrigin, destinationCoords)
+    //         console.log("res:", res)
+    //         console.log("duration:", duration)
+    //         console.log("geometry:", geometry)
+    //     }
+
+    //     runRouting()
+    // }, [originCoords, destinationCoords])
 
 
 
-    }, [originCoords, destinationCoords])
+    useEffect(() => {
+        const pathStops = tripPath.map(item => allStops.find(s => s.name === item.name && s.routeId === item.routeId)).filter(Boolean)
+        // console.log(pathStops)
 
-    
+        const segments = []
+        let currId = null
+        let prevId = null
 
+        for(const stop of pathStops){
+           if(segments.length == 0 || stop.routeId !== segments[segments.length - 1].routeId){
+            segments.push({routeId: stop.routeId, stops: []})
+           }
+           segments[segments.length - 1].stops.push(stop)
+        }
+        // console.log(segments)
+    }, [tripPath])
+
+    //map creation  
+    const map = useRef(null)
+    const mapContainer = useRef(null)
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
+
+    useEffect(() => {
+        if (map.current) return
+            map.current = new mapboxgl.Map({
+            container: mapContainer.current,
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: userLocation ? [userLocation[1], userLocation[0]] : [-89.2903, 31.3271],
+            zoom: 12
+            })
+
+            map.current.addControl(new mapboxgl.GeolocateControl({
+                positionOptions: { enableHighAccuracy: true },
+                trackUserLocation: true,
+                showUserHeading: true
+            }))
+        }, [])
+
+
+    useEffect(() => {
+        if (!map.current || !userLocation) return
+        map.current.flyTo({
+            center: [userLocation[1], userLocation[0]],
+            zoom: 14
+        })
+    }, [userLocation])
 
    
   
@@ -219,6 +290,9 @@ export default function Trip() {
                     )}
                 </div>
             </div>
+
+            {/* Map */}
+            <div id="Map" ref={mapContainer} className='h-128 w-110 overflow-hidden rounded-xl' />
 
 
         </div>
