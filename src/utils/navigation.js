@@ -1,3 +1,4 @@
+import { minutesToClockString } from "./schedule"
 const WALK_PENALTY = 2.5
 
 
@@ -166,6 +167,7 @@ export const djisktras = (graph,start, nowMin, stopLookup, routeLookup) => {
     const arrivedVia = {}
 	const clock = {}
 	const cost = {}
+	const waitAt = {}
     const parents = {}
     const visited = new Set()
 
@@ -190,16 +192,17 @@ export const djisktras = (graph,start, nowMin, stopLookup, routeLookup) => {
 			continue
 		}
 
-        for(const edge of graph[minNode]){
-            let newClock, newCost
+        for (const edge of graph[minNode]) {
+			let newClock, newCost
+			let thisEdgeWait = 0                       // ← add
 
 			if (edge.routeId === "walk") {
 				newClock = clock[minNode] + edge.weight
-        		newCost  = cost[minNode]  + edge.weight * WALK_PENALTY
+				newCost  = cost[minNode]  + edge.weight * WALK_PENALTY
 
 			} else if (arrivedVia[minNode] === edge.routeId) {
 				newClock = clock[minNode] + edge.weight
-        		newCost  = cost[minNode]  + edge.weight
+				newCost  = cost[minNode]  + edge.weight
 
 			} else {
 				const stop = stopLookup[minNode]
@@ -207,8 +210,9 @@ export const djisktras = (graph,start, nowMin, stopLookup, routeLookup) => {
 				if (!stop || !route) continue
 				const departure = stopDeparture(route, stop, clock[minNode])
 				const wait = departure - clock[minNode]
+				thisEdgeWait = wait                    // ← add
 				newClock = departure + edge.weight
-        		newCost  = cost[minNode] + wait + edge.weight
+				newCost  = cost[minNode] + wait + edge.weight
 			}
 
 			if (newCost < cost[edge.to]) {
@@ -216,13 +220,13 @@ export const djisktras = (graph,start, nowMin, stopLookup, routeLookup) => {
 				clock[edge.to] = newClock
 				parents[edge.to] = { name: minNode, routeId: edge.routeId }
 				arrivedVia[edge.to] = edge.routeId
+				waitAt[edge.to] = thisEdgeWait         // ← add
 			}
-
-        }
+		}
         visited.add(minNode)
     }
 
-    return {clock, cost, parents, arrivedVia}
+    return {clock, cost, parents, arrivedVia, waitAt}
 }
 
 
@@ -270,14 +274,21 @@ export const retrievePlace = async (suggestion_id) => {
 }
 
 export const getWalkingDirections =  async (originCoords, destCoords) => {
-	const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${originCoords[1]},${originCoords[0]};${destCoords[1]},${destCoords[0]}?alternatives=true&geometries=geojson&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`
+	//[lng,lat]
+	const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${originCoords[1]},${originCoords[0]};${destCoords[1]},${destCoords[0]}?alternatives=true&steps=true&geometries=geojson&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`
 	try {
 		const data = await fetch(url);
 		const res = await data.json();
 		const duration = Math.round(res.routes[0].duration / 60)
 		const geometry = res.routes[0].geometry
+		const steps = res.routes[0].legs[0].steps.map(s => ({
+				instruction: s.maneuver.instruction,
+				distance: Math.round(s.distance),
+				duration: Math.round(s.duration / 60)
+			}))
+
 		
-		return {res, duration, geometry}|| [];
+		return { duration, geometry, steps }|| [];
 	} catch (error) {
 		console.error("Walking directions fetch failed:", error);
 		return [];
@@ -365,4 +376,65 @@ export const pathToSegments = (path) => {
     }
 
     return segments
+}
+
+
+export const buildOption = async (segments, clock, nowMin, originCoords, destinationCoords, stopLookup, routeLookup, waitAt, meta) => {
+	const resolveCoord = (node) => {
+		if (node.name === "ORIGIN") return [originCoords[1], originCoords[0]]
+		if (node.name === "DESTINATION") return [destinationCoords[1], destinationCoords[0]]
+		const stop = stopLookup[nodeKey(node.stopRoute, node.name)]
+		return [stop.coords[1], stop.coords[0]]   // lng, lat
+	}
+
+
+	for (const seg of segments) {
+		const first = seg.stops[0]
+		const last = seg.stops[seg.stops.length - 1]
+
+		if (seg.mode === "walk") {
+			const a = resolveCoord(first)   // [lng, lat]
+			const b = resolveCoord(last)
+			const { duration, geometry, steps } = await getWalkingDirections([a[1], a[0]], [b[1], b[0]])
+			// attach from, to, minutes, geometry to seg
+				seg.from =  first.name
+				seg.to = last.name
+				seg.minutes = duration
+				seg.geometry = geometry
+				seg.steps = steps
+		} else {
+			const board = stopLookup[nodeKey(first.stopRoute, first.name)]
+			const alight = stopLookup[nodeKey(last.stopRoute, last.name)]
+			let duration = alight.minuteOffset - board.minuteOffset
+			if(duration < 0){
+				const route = routeLookup[seg.mode]
+				duration += route.frequency[0]
+			}
+			const coords = seg.stops.map(resolveCoord)
+
+			seg.boardStop = first.name
+			seg.alightStop = last.name
+			seg.minutes = duration
+			seg.coords = coords
+
+			const secondStop = seg.stops[1]
+			const waitRaw = secondStop
+				? (waitAt[nodeKey(secondStop.stopRoute, secondStop.name)] || 0)
+				: 0
+			const boardClock = clock[nodeKey(first.stopRoute, first.name)]
+
+			seg.waitMin = Math.round(waitRaw)
+			seg.departsAt = minutesToClockString(boardClock + waitRaw)
+
+		}
+	}
+
+	return {
+		id: meta.id,
+		label: meta.label,
+		totalMin: Math.round(clock["DESTINATION"] - nowMin),
+		arriveBy: minutesToClockString(clock["DESTINATION"]),
+		segments
+	}
+
 }

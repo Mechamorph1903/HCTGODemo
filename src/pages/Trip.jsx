@@ -6,7 +6,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { db } from '../data/firebase.js'
 import { collection, getDocs } from 'firebase/firestore'
 import mapboxgl from 'mapbox-gl'
-import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey, pathToSegments} from '../utils/navigation.js'
+import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey, pathToSegments, buildOption} from '../utils/navigation.js'
 import { useDebounce } from "../hooks/debounce.js";
 
 export default function Trip() {
@@ -22,6 +22,8 @@ export default function Trip() {
     const [destinationSelected, setDestinationSelected] = useState(false)
     const [originSelected, setOriginSelected] = useState(false)
     const [tripPath, setTripPath] = useState([])
+    const [tripOptions, setTripOptions] = useState([])
+    const [selectedOption, setSelectedOption] = useState(null)
 
     const groupedStops = useMemo(() => stopGrouper(allStops), [allStops])
     const adjacencyList = useMemo(() => buildTransitGraph(groupedStops, routes), [groupedStops, routes])
@@ -58,18 +60,21 @@ export default function Trip() {
 
     }
 
-    const planTrip = () =>{
+    const planTrip = async () =>{
         const effectiveOrigin = originCoords || userLocation
         if (!effectiveOrigin || !destinationCoords.length || !allStops.length || !Object.keys(adjacencyList).length) return
 
         const nowMin =  new Date().getHours() * 60 + new Date().getMinutes()
 
         const tripGraph = buildTripGraph(adjacencyList, effectiveOrigin, destinationCoords, allStops)
-        const { clock, parents } = djisktras(tripGraph, "ORIGIN", nowMin, stopLookup, routeLookup)
+        const { clock, parents, waitAt } = djisktras(tripGraph, "ORIGIN", nowMin, stopLookup, routeLookup)
         const bestPath = getPath(parents, "DESTINATION")
-        const segmentedPath = pathToSegments(bestPath)
-        setTripPath(segmentedPath)
-
+        const segments = pathToSegments(bestPath)
+        const option = await buildOption(segments, clock, nowMin, effectiveOrigin, destinationCoords, stopLookup, routeLookup, waitAt, {id: "fastest", label: "Fastest"})
+        setTripPath(segments)
+        setTripOptions([option])
+        setSelectedOption(option)
+        console.log("option", option)
     }
     
     useEffect(() => {
@@ -143,18 +148,58 @@ export default function Trip() {
         planTrip()
     }, [originCoords, destinationCoords, userLocation, adjacencyList])
 
-    // useEffect(() => {
-    //     const effectiveOrigin = originCoords || userLocation
-    //     if (!effectiveOrigin || !destinationCoords.length || !allStops.length || !Object.keys(adjacencyList).length) return
-    //     const runRouting = async () => {
-    //         const { res, duration, geometry } = await getWalkingDirections(effectiveOrigin, destinationCoords)
-    //         console.log("res:", res)
-    //         console.log("duration:", duration)
-    //         console.log("geometry:", geometry)
-    //     }
+    //trip drawing
+    useEffect(() => {
+        if (!map.current || !selectedOption) return
+        if (!map.current.isStyleLoaded()) return
 
-    //     runRouting()
-    // }, [originCoords, destinationCoords])
+        for (let i = 0; i < 20; i++) {
+            const id = `trip-seg-${i}`
+            if (map.current.getLayer(id)) map.current.removeLayer(id)
+            if (map.current.getSource(id)) map.current.removeSource(id)
+        }
+
+        selectedOption.segments.forEach((seg, i) => {
+            const id = `trip-seg-${i}`
+            const coordinates = seg.mode === "walk" ? seg.geometry.coordinates : seg.coords
+
+            const paint = seg.mode === "walk" ? {
+                'line-color': '#64748b',
+                'line-width': 3,
+                'line-dasharray': [2, 2]
+                } : {
+                'line-color': routeLookup[seg.mode].color,
+                'line-width': 5
+                }
+
+            map.current.addSource(id, {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    geometry: { type: 'LineString', coordinates }
+                }
+            })
+
+            map.current.addLayer({
+                id,
+                type: 'line',
+                source: id,
+                paint
+               
+            })
+        })
+
+        const allCoords = selectedOption.segments.flatMap(seg =>
+            seg.mode === "walk" ? seg.geometry.coordinates : seg.coords
+        )
+        const lngs = allCoords.map(c => c[0])
+        const lats = allCoords.map(c => c[1])
+
+        map.current.fitBounds(
+            [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
+            { padding: 60 }
+        )
+    }, [selectedOption])
 
 
 

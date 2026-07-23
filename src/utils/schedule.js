@@ -31,6 +31,7 @@
     }
 
     export function minutesToClockString(totalMinutes){
+        totalMinutes = Math.round(((totalMinutes % 1440) + 1440) % 1440) //prevents times going past 12:59 and handle the next-day rollover.
         let hour = Math.floor(totalMinutes/60)
         let minute = totalMinutes % 60
         let ampm = hour >= 12 ? "PM": "AM"
