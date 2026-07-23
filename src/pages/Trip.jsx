@@ -24,6 +24,7 @@ export default function Trip() {
     const [tripPath, setTripPath] = useState([])
     const [tripOptions, setTripOptions] = useState([])
     const [selectedOption, setSelectedOption] = useState(null)
+    const [expandedSeg, setExpandedSeg] = useState(null)
 
     const groupedStops = useMemo(() => stopGrouper(allStops), [allStops])
     const adjacencyList = useMemo(() => buildTransitGraph(groupedStops, routes), [groupedStops, routes])
@@ -74,7 +75,6 @@ export default function Trip() {
         setTripPath(segments)
         setTripOptions([option])
         setSelectedOption(option)
-        console.log("option", option)
     }
     
     useEffect(() => {
@@ -338,6 +338,103 @@ export default function Trip() {
 
             {/* Map */}
             <div id="Map" ref={mapContainer} className='h-128 w-110 overflow-hidden rounded-xl' />
+
+            {/* Options */}
+                {/* Pills */}
+                {tripOptions.length > 0 && (
+                    <div className="flex gap-2 mt-4 overflow-x-auto">
+                        {tripOptions.map(opt => (
+                            <button
+                                key={opt.id}
+                                onClick={() => setSelectedOption(opt)}
+                                className={`flex flex-col items-start px-4 py-3 rounded-2xl border shrink-0 transition-colors ${
+                                    selectedOption?.id === opt.id
+                                        ? 'bg-slate-900 text-white border-slate-900'
+                                        : 'bg-white text-slate-900 border-slate-200'
+                                }`}
+                            >
+                                <span className="text-xs font-medium opacity-70">{opt.label}</span>
+                                <span className="text-lg font-bold leading-tight">{opt.totalMin} min</span>
+                                <span className="text-xs opacity-70">Arrive {opt.arriveBy}</span>
+                            </button>
+                        ))}
+                    </div>
+                )}
+                
+                {/* Expanded Pill */}
+                {selectedOption && (
+                    <div className="mt-6 flex flex-col gap-3">
+                        {selectedOption.segments.map((seg, i) => (
+                            <div key={i} className="flex flex-col">
+
+                                {seg.mode === "walk" ? (
+                                    <>
+                                        <button
+                                            onClick={() => setExpandedSeg(expandedSeg === i ? null : i)}
+                                            className="flex items-center gap-3 text-left p-3 rounded-xl bg-slate-50 border border-slate-100"
+                                        >
+                                            <FontAwesomeIcon icon="fa-solid fa-person-walking" className="text-slate-400" />
+                                            <div className="flex-1">
+                                                <p className="text-sm font-medium">Walk {seg.minutes} min</p>
+                                                <p className="text-xs text-slate-400">to {seg.to === "DESTINATION" ? "your destination" : seg.to}</p>
+                                            </div>
+                                            <FontAwesomeIcon icon={expandedSeg === i ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"} className="text-slate-300 text-xs" />
+                                        </button>
+
+                                        {expandedSeg === i && seg.steps && (
+                                            <ol className="mt-2 ml-6 flex flex-col gap-1">
+                                                {seg.steps.map((step, j) => (
+                                                    <li key={j} className="text-xs text-slate-500">
+                                                        {step.instruction}
+                                                        {step.distance > 0 && <span className="text-slate-300"> · {step.distance}m</span>}
+                                                    </li>
+                                                ))}
+                                            </ol>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
+                                            <FontAwesomeIcon icon="fa-solid fa-clock" className="text-amber-500" />
+                                            <p className="text-sm font-medium text-amber-800">
+                                                Wait {seg.waitMin} min — departs {seg.departsAt}
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            onClick={() => setExpandedSeg(expandedSeg === i ? null : i)}
+                                            className="flex items-center gap-3 p-3 mt-2 rounded-xl border w-full text-left"
+                                            style={{ borderColor: routeLookup[seg.mode]?.color }}
+                                        >
+                                            <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: routeLookup[seg.mode]?.color }} />
+                                            <div className="flex-1">
+                                                <p className="text-sm font-medium">
+                                                    {routeLookup[seg.mode]?.name} Route · {seg.minutes} min
+                                                </p>
+                                                <p className="text-xs text-slate-400">
+                                                    {seg.stops.length - 1} stops to {seg.alightStop}
+                                                </p>
+                                            </div>
+                                            <FontAwesomeIcon icon={expandedSeg === i ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"} className="text-slate-300 text-xs" />
+                                        </button>
+
+                                        {expandedSeg === i && (
+                                            <ol className="mt-2 ml-6 flex flex-col gap-1 border-l-2 pl-4" style={{ borderColor: routeLookup[seg.mode]?.color }}>
+                                                {seg.stops.map((s, j) => (
+                                                    <li key={j} className="text-xs text-slate-500">
+                                                        {s.name}
+                                                        {j === 0 && <span className="text-slate-300"> · board here</span>}
+                                                        {j === seg.stops.length - 1 && <span className="text-slate-300"> · get off</span>}
+                                                    </li>
+                                                ))}
+                                            </ol>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
 
 
         </div>
