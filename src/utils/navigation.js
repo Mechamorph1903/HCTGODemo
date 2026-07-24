@@ -1,5 +1,5 @@
 import { minutesToClockString } from "./schedule"
-const WALK_PENALTY = 2.5
+
 
 
 export const stopGrouper = (stops) => {
@@ -32,21 +32,18 @@ export const effectiveHeadway = (route) =>
 
 
 export const getNextDeparture = (firstPassMin, frequency, currentMin, lastPassMin) => {
-	if(currentMin <= firstPassMin){
-		return firstPassMin
-	}
+	const dayOffset = Math.floor(currentMin / 1440) * 1440
+    const localNow = currentMin - dayOffset
 
-	const elapsed = currentMin - firstPassMin
-	const k = Math.ceil(elapsed/frequency)
-	const nextDeparture = firstPassMin + (k*frequency)
+    if (localNow <= firstPassMin) return dayOffset + firstPassMin
 
-	
-	if(nextDeparture > lastPassMin){
-		return firstPassMin + 1440
-	}
-	
+    const elapsed = localNow - firstPassMin
+    const k = Math.ceil(elapsed / frequency)
+    const next = firstPassMin + k * frequency
 
-	return nextDeparture
+    if (next > lastPassMin) return dayOffset + 1440 + firstPassMin
+
+    return dayOffset + next
 
 }
 
@@ -150,8 +147,14 @@ export const buildTransitGraph = (groupedStops, routes) => {
 
 export const getPath = (parent, target) => {
     const pathArr = [{ key: target, routeId: parent[target]?.routeId }]
+	const seen = new Set([target])
     let curr = parent[target]
     while (curr) {
+		if (seen.has(curr.name)) {
+            console.warn("Cycle detected in path reconstruction at", curr.name)
+            break
+        }
+        seen.add(curr.name)
         pathArr.push({ key: curr.name, routeId: curr.routeId })
         curr = parent[curr.name]
     }
@@ -163,7 +166,9 @@ export const getPath = (parent, target) => {
     })
 }
 
-export const djisktras = (graph,start, nowMin, stopLookup, routeLookup) => {
+export const djisktras = (graph,start, nowMin, stopLookup, routeLookup, config = {}) => {
+	const walkPenalty = config.walkPenalty ?? 2.5
+    const transferPenalty = config.transferPenalty ?? 0
     const arrivedVia = {}
 	const clock = {}
 	const cost = {}
@@ -198,7 +203,7 @@ export const djisktras = (graph,start, nowMin, stopLookup, routeLookup) => {
 
 			if (edge.routeId === "walk") {
 				newClock = clock[minNode] + edge.weight
-				newCost  = cost[minNode]  + edge.weight * WALK_PENALTY
+				newCost  = cost[minNode]  + edge.weight * walkPenalty
 
 			} else if (arrivedVia[minNode] === edge.routeId) {
 				newClock = clock[minNode] + edge.weight
@@ -212,7 +217,7 @@ export const djisktras = (graph,start, nowMin, stopLookup, routeLookup) => {
 				const wait = departure - clock[minNode]
 				thisEdgeWait = wait                    // ← add
 				newClock = departure + edge.weight
-				newCost  = cost[minNode] + wait + edge.weight
+				newCost  = cost[minNode] + wait + edge.weight + transferPenalty
 			}
 
 			if (newCost < cost[edge.to]) {

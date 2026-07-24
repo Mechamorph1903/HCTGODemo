@@ -51,6 +51,12 @@
         return `${hour}:${minute} ${ampm}`
     }
 
+    export const minutesToTimeInput = (min) => {
+        const h = Math.floor(min / 60) % 24
+        const m = Math.round(min % 60)
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
+    }
+
     export function getNextArrivalStatus(stopTimesArray, endTime) {
     // 1. Get the current time in minutes past midnight
     const now = new Date();

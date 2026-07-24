@@ -7,6 +7,7 @@ import { db } from '../data/firebase.js'
 import { collection, getDocs } from 'firebase/firestore'
 import mapboxgl from 'mapbox-gl'
 import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey, pathToSegments, buildOption} from '../utils/navigation.js'
+import { minutesToTimeInput, minutesToClockString } from "../utils/schedule.js";
 import { useDebounce } from "../hooks/debounce.js";
 
 export default function Trip() {
@@ -21,10 +22,11 @@ export default function Trip() {
     const [destinationCoords, setDestinationCoords] = useState([])
     const [destinationSelected, setDestinationSelected] = useState(false)
     const [originSelected, setOriginSelected] = useState(false)
-    const [tripPath, setTripPath] = useState([])
     const [tripOptions, setTripOptions] = useState([])
     const [selectedOption, setSelectedOption] = useState(null)
     const [expandedSeg, setExpandedSeg] = useState(null)
+    const [departAt, setDepartAt] = useState(null)
+    const [showTimePicker, setShowTimePicker] = useState(false)
 
     const groupedStops = useMemo(() => stopGrouper(allStops), [allStops])
     const adjacencyList = useMemo(() => buildTransitGraph(groupedStops, routes), [groupedStops, routes])
@@ -61,20 +63,56 @@ export default function Trip() {
 
     }
 
+    const planOne = async (tripGraph, nowMin, effectiveOrigin, config, meta) =>{
+        const { clock, parents, waitAt } = djisktras(tripGraph, "ORIGIN", nowMin, stopLookup, routeLookup, config)
+
+        if (clock["DESTINATION"] === Infinity) return null
+
+        const bestPath = getPath(parents, "DESTINATION")
+        const segments = pathToSegments(bestPath)
+
+
+        return await buildOption(segments, clock, nowMin, effectiveOrigin, destinationCoords, stopLookup, routeLookup, waitAt, meta)
+        
+    }
+
     const planTrip = async () =>{
         const effectiveOrigin = originCoords || userLocation
         if (!effectiveOrigin || !destinationCoords.length || !allStops.length || !Object.keys(adjacencyList).length) return
 
-        const nowMin =  new Date().getHours() * 60 + new Date().getMinutes()
-
+        let nowMin = departAt ?? (new Date().getHours() * 60 + new Date().getMinutes())
+        const actualNow = new Date().getHours() * 60 + new Date().getMinutes()
+        if (departAt !== null && departAt < actualNow) nowMin = departAt + 1440
         const tripGraph = buildTripGraph(adjacencyList, effectiveOrigin, destinationCoords, allStops)
-        const { clock, parents, waitAt } = djisktras(tripGraph, "ORIGIN", nowMin, stopLookup, routeLookup)
-        const bestPath = getPath(parents, "DESTINATION")
-        const segments = pathToSegments(bestPath)
-        const option = await buildOption(segments, clock, nowMin, effectiveOrigin, destinationCoords, stopLookup, routeLookup, waitAt, {id: "fastest", label: "Fastest"})
-        setTripPath(segments)
-        setTripOptions([option])
-        setSelectedOption(option)
+
+        const objectives = [
+            { config: { walkPenalty: 2.5, transferPenalty: 0 },  meta: { id: "fastest",       label: "Fastest" } },
+            { config: { walkPenalty: 10,  transferPenalty: 0 },  meta: { id: "leastWalking",  label: "Least walking" } },
+            { config: { walkPenalty: 2.5, transferPenalty: 20 }, meta: { id: "fewestTransfers", label: "Fewest transfers" } },
+        ]
+
+        const results = []
+        for (const obj of objectives) {
+            const option = await planOne(tripGraph, nowMin, effectiveOrigin, obj.config, obj.meta)
+            if (option) results.push(option)
+        }
+
+        // dedupe by path signature
+        const signature = (segments) =>
+            segments.map(s => `${s.mode}:${s.stops.map(x => x.name).join(">")}`).join("|")
+
+        const seen = new Set()
+        const unique = []
+        for (const opt of results) {
+            const sig = signature(opt.segments)
+            if (seen.has(sig)) continue
+            seen.add(sig)
+            unique.push(opt)
+        }
+
+        setTripOptions(unique)
+        setSelectedOption(unique[0])
+       
     }
     
     useEffect(() => {
@@ -146,7 +184,7 @@ export default function Trip() {
     //djikstras for routing
     useEffect(() => {
         planTrip()
-    }, [originCoords, destinationCoords, userLocation, adjacencyList])
+    }, [originCoords, destinationCoords, userLocation, adjacencyList, departAt])
 
     //trip drawing
     useEffect(() => {
@@ -202,23 +240,6 @@ export default function Trip() {
     }, [selectedOption])
 
 
-
-    useEffect(() => {
-        const pathStops = tripPath.map(item => allStops.find(s => s.name === item.name && s.routeId === item.routeId)).filter(Boolean)
-        // console.log(pathStops)
-
-        const segments = []
-        let currId = null
-        let prevId = null
-
-        for(const stop of pathStops){
-           if(segments.length == 0 || stop.routeId !== segments[segments.length - 1].routeId){
-            segments.push({routeId: stop.routeId, stops: []})
-           }
-           segments[segments.length - 1].stops.push(stop)
-        }
-        // console.log(segments)
-    }, [tripPath])
 
     //map creation  
     const map = useRef(null)
@@ -335,6 +356,39 @@ export default function Trip() {
                     )}
                 </div>
             </div>
+            {/* ArriveType */}
+            <button
+                onClick={() => setShowTimePicker(!showTimePicker)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-sm font-medium mt-3"
+            >
+                <FontAwesomeIcon icon="fa-solid fa-clock" className="text-slate-400" />
+                {departAt === null ? "Leave now" : `Leave at ${minutesToClockString(departAt)}`}
+                <FontAwesomeIcon icon="fa-solid fa-chevron-down" className="text-xs text-slate-400" />
+            </button>
+
+            {showTimePicker && (
+                <div className="mt-2 p-4 rounded-2xl bg-white border border-slate-200 flex flex-col gap-3">
+                    <button
+                        onClick={() => { setDepartAt(null); setShowTimePicker(false) }}
+                        className={`text-left text-sm font-medium ${departAt === null ? "text-blue-600" : "text-slate-700"}`}
+                    >
+                        Leave now
+                    </button>
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm text-slate-700">Leave at</span>
+                        <input
+                            type="time"
+                            value={departAt === null ? "" : minutesToTimeInput(departAt)}
+                            onChange={(e) => {
+                                if (!e.target.value) return
+                                const [h, m] = e.target.value.split(":").map(Number)
+                                setDepartAt(h * 60 + m)
+                            }}
+                            className="bg-slate-100 rounded-xl px-3 py-2 text-sm"
+                        />
+                    </div>
+                </div>
+            )}
 
             {/* Map */}
             <div id="Map" ref={mapContainer} className='h-128 w-110 overflow-hidden rounded-xl' />
