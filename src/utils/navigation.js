@@ -430,6 +430,7 @@ export const buildOption = async (segments, clock, nowMin, originCoords, destina
 
 			seg.waitMin = Math.round(waitRaw)
 			seg.departsAt = minutesToClockString(boardClock + waitRaw)
+			seg.departsAtMin = boardClock + waitRaw 
 
 		}
 	}
@@ -442,4 +443,25 @@ export const buildOption = async (segments, clock, nowMin, originCoords, destina
 		segments
 	}
 
+}
+
+export const edgeBlocker = (rootPath, acceptedPaths) => {
+	let match = 0
+	const blockedEdges = new Set()
+		for(let i = 0; i < acceptedPaths.length; i++){
+			for(let j = 0; j< acceptedPaths[i].length; j++){
+				if(match >= rootPath.length){
+					blockedEdges.add(`${rootPath[j-1]}->${acceptedPaths[i][j]}`)
+					break
+				}
+				if(rootPath[j] === acceptedPaths[i][j]){
+					match += 1
+				}
+				
+				
+			}
+			match = 0
+		}
+
+	return blockedEdges
 }

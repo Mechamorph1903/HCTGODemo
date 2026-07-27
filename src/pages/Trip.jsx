@@ -6,26 +6,29 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { db } from '../data/firebase.js'
 import { collection, getDocs } from 'firebase/firestore'
 import mapboxgl from 'mapbox-gl'
-import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey, pathToSegments, buildOption} from '../utils/navigation.js'
+import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey, pathToSegments, buildOption, edgeBlocker} from '../utils/navigation.js'
 import { minutesToTimeInput, minutesToClockString } from "../utils/schedule.js";
 import { useDebounce } from "../hooks/debounce.js";
 
-export default function Trip() {
+export default function Trip({ initialDestination, initialDestinationCoords }) {
     const [routes, setRoutes] = useState([]) 
     const [allStops, setAllStops] = useState([])
     const [userLocation, setUserLocation] = useState(null)
-    const [destination, setDestination] = useState('')
+    const [destination, setDestination] = useState(initialDestination ?? '')
     const [origin, setOrigin] = useState('')
     const [activeInput, setActiveInput] = useState(null)
     const [suggestions, setSuggestions] = useState([])
     const [originCoords, setOriginCoords] = useState(userLocation)
-    const [destinationCoords, setDestinationCoords] = useState([])
+    const [destinationCoords, setDestinationCoords] = useState(initialDestinationCoords ?? [])
     const [destinationSelected, setDestinationSelected] = useState(false)
     const [originSelected, setOriginSelected] = useState(false)
-    const [tripOptions, setTripOptions] = useState([])
-    const [selectedOption, setSelectedOption] = useState(null)
+    const [tripOptions, setTripOptions] = useState({ fastest: [], leastWalking: [], fewestTransfers: [] })
+    const [activeObjective, setActiveObjective] = useState("fastest") 
+    const [activeIndex, setActiveIndex] = useState(0)          
+    const selectedOption = tripOptions[activeObjective]?.[activeIndex] ?? null
     const [expandedSeg, setExpandedSeg] = useState(null)
     const [departAt, setDepartAt] = useState(null)
+    const [nowTick, setNowTick] = useState(Date.now())
     const [showTimePicker, setShowTimePicker] = useState(false)
 
     const groupedStops = useMemo(() => stopGrouper(allStops), [allStops])
@@ -62,21 +65,90 @@ export default function Trip() {
         }
 
     }
+    const findShortestPath = (tripGraph, startNode, nowMin, config) => {
+        const { clock, parents, cost, waitAt } = djisktras(tripGraph, startNode, nowMin, stopLookup, routeLookup, config)
 
-    const planOne = async (tripGraph, nowMin, effectiveOrigin, config, meta) =>{
-        const { clock, parents, waitAt } = djisktras(tripGraph, "ORIGIN", nowMin, stopLookup, routeLookup, config)
 
-        if (clock["DESTINATION"] === Infinity) return null
+
+        if (clock["DESTINATION"] === Infinity) return {bestPath: null, clock: null, cost: null, waitAt: null}
 
         const bestPath = getPath(parents, "DESTINATION")
+
+        return { bestPath ,clock, cost, waitAt  }
+    }
+
+
+
+
+    const planOne = async (tripGraph, nowMin, effectiveOrigin, config, meta) =>{
+        const { bestPath, clock, waitAt } = findShortestPath(tripGraph, "ORIGIN", nowMin, config)
+
+        if (bestPath === null) return { bestPath: null, option: null }
+
         const segments = pathToSegments(bestPath)
+        const option = await buildOption(segments, clock, nowMin, effectiveOrigin, destinationCoords, stopLookup, routeLookup, waitAt, meta)
 
-
-        return await buildOption(segments, clock, nowMin, effectiveOrigin, destinationCoords, stopLookup, routeLookup, waitAt, meta)
+        return {bestPath, option}
         
     }
 
-    const planTrip = async () =>{
+    const findKShortestPaths = async (tripGraph, effectiveOrigin, nowMin, config, k = 3) => {
+        const first = findShortestPath(tripGraph, "ORIGIN", nowMin, config)
+        if (first.bestPath === null) return []
+
+        const A = [first]   // accepted paths so far, each: { bestPath, clock, cost, waitAt }
+
+        while (A.length < k) {
+            const prevPath = A[A.length - 1].bestPath
+            const candidates = []
+
+            for (let i = 0; i < prevPath.length - 1; i++) {
+                const spurNode = prevPath[i]
+                const rootPath = prevPath.slice(0, i + 1)
+
+                const blockedEdges = edgeBlocker(rootPath, A.map(p => p.bestPath))
+                const spurConfig = { ...config, blockedEdges }
+
+                const nowAtSpur = A[A.length - 1].clock[spurNode]
+                const spurResult = findShortestPath(tripGraph, spurNode, nowAtSpur, spurConfig)
+                if (spurResult.bestPath === null) continue
+
+                const fullPath = rootPath.slice(0, -1).concat(spurResult.bestPath)
+                const mergedClock = { ...A[A.length - 1].clock, ...spurResult.clock }
+                const mergedWaitAt = { ...A[A.length - 1].waitAt, ...spurResult.waitAt }
+
+                // root cost (up to spur node, from the path we're spurring off of) + spur cost (spur node onward, starts at 0)
+                const totalCost = A[A.length - 1].cost[spurNode] + spurResult.cost["DESTINATION"]
+
+                candidates.push({ bestPath: fullPath, clock: mergedClock, waitAt: mergedWaitAt, totalCost })
+            }
+
+            // dedupe against paths already accepted
+            const seen = new Set(A.map(p => p.bestPath.join("|")))
+            const fresh = candidates.filter(c => !seen.has(c.bestPath.join("|")))
+
+            if (fresh.length === 0) break   // graph's exhausted, no more distinct alternatives exist
+
+            fresh.sort((a, b) => a.totalCost - b.totalCost)
+            A.push(fresh[0])
+        }
+
+        // format every accepted path into a real display-ready option
+        const options = []
+        for (let i = 0; i < A.length; i++) {
+            const segments = pathToSegments(A[i].bestPath)
+            const option = await buildOption(
+                segments, A[i].clock, nowMin, effectiveOrigin, destinationCoords,
+                stopLookup, routeLookup, A[i].waitAt,
+                { id: `alt${i}`, label: i === 0 ? "Best route" : `Alternative ${i}` }
+            )
+            options.push(option)
+        }
+
+        return options
+    }
+
+    const planTrip = async () => {
         const effectiveOrigin = originCoords || userLocation
         if (!effectiveOrigin || !destinationCoords.length || !allStops.length || !Object.keys(adjacencyList).length) return
 
@@ -85,34 +157,19 @@ export default function Trip() {
         if (departAt !== null && departAt < actualNow) nowMin = departAt + 1440
         const tripGraph = buildTripGraph(adjacencyList, effectiveOrigin, destinationCoords, allStops)
 
-        const objectives = [
-            { config: { walkPenalty: 2.5, transferPenalty: 0 },  meta: { id: "fastest",       label: "Fastest" } },
-            { config: { walkPenalty: 10,  transferPenalty: 0 },  meta: { id: "leastWalking",  label: "Least walking" } },
-            { config: { walkPenalty: 2.5, transferPenalty: 20 }, meta: { id: "fewestTransfers", label: "Fewest transfers" } },
-        ]
+        const [fastestOptions, leastWalkingResult, fewestTransfersResult] = await Promise.all([
+            findKShortestPaths(tripGraph, effectiveOrigin, nowMin, { walkPenalty: 2.5, transferPenalty: 0 }, 3),
+            planOne(tripGraph, nowMin, effectiveOrigin, { walkPenalty: 10, transferPenalty: 0 }, { id: "leastWalking", label: "Least walking" }),
+            planOne(tripGraph, nowMin, effectiveOrigin, { walkPenalty: 2.5, transferPenalty: 20 }, { id: "fewestTransfers", label: "Fewest transfers" }),
+        ])
 
-        const results = []
-        for (const obj of objectives) {
-            const option = await planOne(tripGraph, nowMin, effectiveOrigin, obj.config, obj.meta)
-            if (option) results.push(option)
-        }
-
-        // dedupe by path signature
-        const signature = (segments) =>
-            segments.map(s => `${s.mode}:${s.stops.map(x => x.name).join(">")}`).join("|")
-
-        const seen = new Set()
-        const unique = []
-        for (const opt of results) {
-            const sig = signature(opt.segments)
-            if (seen.has(sig)) continue
-            seen.add(sig)
-            unique.push(opt)
-        }
-
-        setTripOptions(unique)
-        setSelectedOption(unique[0])
-       
+        setTripOptions({
+            fastest: fastestOptions,
+            leastWalking: leastWalkingResult.option ? [leastWalkingResult.option] : [],
+            fewestTransfers: fewestTransfersResult.option ? [fewestTransfersResult.option] : [],
+        })
+        setActiveObjective("fastest")
+        setActiveIndex(0)
     }
     
     useEffect(() => {
@@ -185,6 +242,22 @@ export default function Trip() {
     useEffect(() => {
         planTrip()
     }, [originCoords, destinationCoords, userLocation, adjacencyList, departAt])
+
+
+    // tick every 30s so countdowns re-render
+    useEffect(() => {
+        const t = setInterval(() => setNowTick(Date.now()), 30000)
+        return () => clearInterval(t)
+    }, [])
+
+    // re-plan if the first bus has departed
+    useEffect(() => {
+        if (departAt !== null || !selectedOption) return
+        const firstBus = selectedOption.segments.find(s => s.mode !== "walk")
+        if (!firstBus) return
+        const nowM = new Date().getHours() * 60 + new Date().getMinutes()
+        if (nowM > firstBus.departsAtMin) planTrip()
+    }, [nowTick])
 
     //trip drawing
     useEffect(() => {
@@ -394,101 +467,134 @@ export default function Trip() {
             <div id="Map" ref={mapContainer} className='h-128 w-110 overflow-hidden rounded-xl' />
 
             {/* Options */}
-                {/* Pills */}
-                {tripOptions.length > 0 && (
-                    <div className="flex gap-2 mt-4 overflow-x-auto">
-                        {tripOptions.map(opt => (
-                            <button
-                                key={opt.id}
-                                onClick={() => setSelectedOption(opt)}
-                                className={`flex flex-col items-start px-4 py-3 rounded-2xl border shrink-0 transition-colors ${
-                                    selectedOption?.id === opt.id
-                                        ? 'bg-slate-900 text-white border-slate-900'
-                                        : 'bg-white text-slate-900 border-slate-200'
-                                }`}
-                            >
-                                <span className="text-xs font-medium opacity-70">{opt.label}</span>
-                                <span className="text-lg font-bold leading-tight">{opt.totalMin} min</span>
-                                <span className="text-xs opacity-70">Arrive {opt.arriveBy}</span>
-                            </button>
-                        ))}
-                    </div>
-                )}
-                
-                {/* Expanded Pill */}
-                {selectedOption && (
-                    <div className="mt-6 flex flex-col gap-3">
-                        {selectedOption.segments.map((seg, i) => (
-                            <div key={i} className="flex flex-col">
+                {/* Objective dropdown */}
+                    {(tripOptions.fastest.length > 0 || tripOptions.leastWalking.length > 0 || tripOptions.fewestTransfers.length > 0) && (
+                        <select
+                            value={activeObjective}
+                            onChange={(e) => {
+                                setActiveObjective(e.target.value)
+                                setActiveIndex(0)
+                                setExpandedSeg(null)
+                            }}
+                            className="bg-slate-100 rounded-xl px-3 py-2 text-sm font-medium mt-4"
+                        >
+                            <option value="fastest">Fastest</option>
+                            <option value="leastWalking">Least walking</option>
+                            <option value="fewestTransfers">Fewest transfers</option>
+                        </select>
+                    )}
 
-                                {seg.mode === "walk" ? (
-                                    <>
-                                        <button
-                                            onClick={() => setExpandedSeg(expandedSeg === i ? null : i)}
-                                            className="flex items-center gap-3 text-left p-3 rounded-xl bg-slate-50 border border-slate-100"
-                                        >
-                                            <FontAwesomeIcon icon="fa-solid fa-person-walking" className="text-slate-400" />
-                                            <div className="flex-1">
-                                                <p className="text-sm font-medium">Walk {seg.minutes} min</p>
-                                                <p className="text-xs text-slate-400">to {seg.to === "DESTINATION" ? "your destination" : seg.to}</p>
-                                            </div>
-                                            <FontAwesomeIcon icon={expandedSeg === i ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"} className="text-slate-300 text-xs" />
-                                        </button>
+                    {/* Pills for whichever objective is active */}
+                    {tripOptions[activeObjective]?.length > 0 ? (
+                        <div className="flex gap-2 mt-3 overflow-x-auto">
+                            {tripOptions[activeObjective].map((opt, i) => {
+                                const routes = [...new Set(opt.segments.filter(s => s.mode !== "walk").map(s => s.mode))]
+                                    .map(m => routeLookup[m]?.name ?? m)   // adjust ?? fallback to whatever field your route objects actually use
 
-                                        {expandedSeg === i && seg.steps && (
-                                            <ol className="mt-2 ml-6 flex flex-col gap-1">
-                                                {seg.steps.map((step, j) => (
-                                                    <li key={j} className="text-xs text-slate-500">
-                                                        {step.instruction}
-                                                        {step.distance > 0 && <span className="text-slate-300"> · {step.distance}m</span>}
-                                                    </li>
-                                                ))}
-                                            </ol>
-                                        )}
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
-                                            <FontAwesomeIcon icon="fa-solid fa-clock" className="text-amber-500" />
-                                            <p className="text-sm font-medium text-amber-800">
-                                                Wait {seg.waitMin} min — departs {seg.departsAt}
-                                            </p>
-                                        </div>
+                                return (
+                                    <button
+                                        key={opt.id ?? i}
+                                        onClick={() => {
+                                            setActiveIndex(i)
+                                            setExpandedSeg(null)
+                                        }}
+                                        className={`flex flex-col items-start px-4 py-3 rounded-2xl border shrink-0 transition-colors ${
+                                            activeIndex === i
+                                                ? 'bg-slate-900 text-white border-slate-900'
+                                                : 'bg-white text-slate-900 border-slate-200'
+                                        }`}
+                                    >
+                                        <span className="text-xs font-medium opacity-70">
+                                            {tripOptions[activeObjective].length > 1 ? `Route ${i + 1}` : opt.label}
+                                        </span>
+                                        <span className="text-lg font-bold leading-tight">{opt.totalMin} min</span>
+                                        <span className="text-xs opacity-70">{routes.length ? routes.join(", ") : "Walk only"}</span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    ) : (
+                        tripOptions.fastest.length + tripOptions.leastWalking.length + tripOptions.fewestTransfers.length > 0 && (
+                            <p className="text-sm text-slate-500 mt-3">No route found for this option.</p>
+                        )
+                    )}
 
-                                        <button
-                                            onClick={() => setExpandedSeg(expandedSeg === i ? null : i)}
-                                            className="flex items-center gap-3 p-3 mt-2 rounded-xl border w-full text-left"
-                                            style={{ borderColor: routeLookup[seg.mode]?.color }}
-                                        >
-                                            <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: routeLookup[seg.mode]?.color }} />
-                                            <div className="flex-1">
-                                                <p className="text-sm font-medium">
-                                                    {routeLookup[seg.mode]?.name} Route · {seg.minutes} min
+                    {selectedOption && (
+                        <div className="mt-6 flex flex-col gap-3">
+                            {selectedOption.segments.map((seg, i) => (
+                                <div key={i} className="flex flex-col">
+
+                                    {seg.mode === "walk" ? (
+                                        <>
+                                            <button
+                                                onClick={() => setExpandedSeg(expandedSeg === i ? null : i)}
+                                                className="flex items-center gap-3 text-left p-3 rounded-xl bg-slate-50 border border-slate-100"
+                                            >
+                                                <FontAwesomeIcon icon="fa-solid fa-person-walking" className="text-slate-400" />
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-medium">Walk {seg.minutes} min</p>
+                                                    <p className="text-xs text-slate-400">to {seg.to === "DESTINATION" ? "your destination" : seg.to}</p>
+                                                </div>
+                                                <FontAwesomeIcon icon={expandedSeg === i ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"} className="text-slate-300 text-xs" />
+                                            </button>
+                                            {expandedSeg === i && seg.steps && (
+                                                <ol className="mt-2 ml-6 flex flex-col gap-1">
+                                                    {seg.steps.map((step, j) => (
+                                                        <li key={j} className="text-xs text-slate-500">
+                                                            {step.instruction}
+                                                            {step.distance > 0 && <span className="text-slate-300"> · {step.distance}m</span>}
+                                                        </li>
+                                                    ))}
+                                                </ol>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
+                                                <FontAwesomeIcon icon="fa-solid fa-clock" className="text-amber-500" />
+                                                <p className="text-sm font-medium text-amber-800">
+                                                    {(() => {
+                                                        const nowM = new Date().getHours() * 60 + new Date().getMinutes()
+                                                        const mins = Math.round(seg.departsAtMin - nowM)
+                                                        return mins <= 0
+                                                            ? `Departing now — ${seg.departsAt}`
+                                                            : `Wait ${mins} min — departs ${seg.departsAt}`
+                                                    })()}
                                                 </p>
-                                                <p className="text-xs text-slate-400">
-                                                    {seg.stops.length - 1} stops to {seg.alightStop}
-                                                </p>
                                             </div>
-                                            <FontAwesomeIcon icon={expandedSeg === i ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"} className="text-slate-300 text-xs" />
-                                        </button>
-
-                                        {expandedSeg === i && (
-                                            <ol className="mt-2 ml-6 flex flex-col gap-1 border-l-2 pl-4" style={{ borderColor: routeLookup[seg.mode]?.color }}>
-                                                {seg.stops.map((s, j) => (
-                                                    <li key={j} className="text-xs text-slate-500">
-                                                        {s.name}
-                                                        {j === 0 && <span className="text-slate-300"> · board here</span>}
-                                                        {j === seg.stops.length - 1 && <span className="text-slate-300"> · get off</span>}
-                                                    </li>
-                                                ))}
-                                            </ol>
-                                        )}
-                                    </>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
+                                            <button
+                                                onClick={() => setExpandedSeg(expandedSeg === i ? null : i)}
+                                                className="flex items-center gap-3 p-3 mt-2 rounded-xl border w-full text-left"
+                                                style={{ borderColor: routeLookup[seg.mode]?.color }}
+                                            >
+                                                <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: routeLookup[seg.mode]?.color }} />
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-medium">
+                                                        {routeLookup[seg.mode]?.name} Route · {seg.minutes} min
+                                                    </p>
+                                                    <p className="text-xs text-slate-400">
+                                                        {seg.stops.length - 1} stops to {seg.alightStop}
+                                                    </p>
+                                                </div>
+                                                <FontAwesomeIcon icon={expandedSeg === i ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"} className="text-slate-300 text-xs" />
+                                            </button>
+                                            {expandedSeg === i && (
+                                                <ol className="mt-2 ml-6 flex flex-col gap-1 border-l-2 pl-4" style={{ borderColor: routeLookup[seg.mode]?.color }}>
+                                                    {seg.stops.map((s, j) => (
+                                                        <li key={j} className="text-xs text-slate-500">
+                                                            {s.name}
+                                                            {j === 0 && <span className="text-slate-300"> · board here</span>}
+                                                            {j === seg.stops.length - 1 && <span className="text-slate-300"> · get off</span>}
+                                                        </li>
+                                                    ))}
+                                                </ol>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
 
         </div>
