@@ -27,6 +27,8 @@ export const stopGrouper = (stops) => {
 
 export const nodeKey = (routeId, name) => `${routeId}::${name}`
 
+export const nodeKeyOf = (node) => node.stopRoute ? nodeKey(node.stopRoute, node.name) : node.name
+
 export const effectiveHeadway = (route) =>
 	route.isDualBus ? route.frequency[0]/ 2 : route.frequency[0]
 
@@ -198,8 +200,11 @@ export const djisktras = (graph,start, nowMin, stopLookup, routeLookup, config =
 		}
 
         for (const edge of graph[minNode]) {
+			const edgeKey = `${minNode}->${edge.to}`
+    		if (config.blockedEdges?.has(edgeKey)) continue
+
 			let newClock, newCost
-			let thisEdgeWait = 0                       // ← add
+			let thisEdgeWait = 0                      
 
 			if (edge.routeId === "walk") {
 				newClock = clock[minNode] + edge.weight
@@ -448,13 +453,16 @@ export const buildOption = async (segments, clock, nowMin, originCoords, destina
 export const edgeBlocker = (rootPath, acceptedPaths) => {
 	let match = 0
 	const blockedEdges = new Set()
+	const rootKeys = rootPath.map(nodeKeyOf)
+
 		for(let i = 0; i < acceptedPaths.length; i++){
-			for(let j = 0; j< acceptedPaths[i].length; j++){
-				if(match >= rootPath.length){
-					blockedEdges.add(`${rootPath[j-1]}->${acceptedPaths[i][j]}`)
+			const pathKeys = acceptedPaths[i].map(nodeKeyOf)
+			for(let j = 0; j< pathKeys.length; j++){
+				if(match >= rootKeys.length){
+					blockedEdges.add(`${rootKeys[j-1]}->${pathKeys[j]}`)
 					break
 				}
-				if(rootPath[j] === acceptedPaths[i][j]){
+				if(rootKeys[j] === pathKeys[j]){
 					match += 1
 				}
 				

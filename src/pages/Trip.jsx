@@ -6,7 +6,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { db } from '../data/firebase.js'
 import { collection, getDocs } from 'firebase/firestore'
 import mapboxgl from 'mapbox-gl'
-import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey, pathToSegments, buildOption, edgeBlocker} from '../utils/navigation.js'
+import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey,nodeKeyOf, pathToSegments, buildOption, edgeBlocker} from '../utils/navigation.js'
 import { minutesToTimeInput, minutesToClockString } from "../utils/schedule.js";
 import { useDebounce } from "../hooks/debounce.js";
 
@@ -104,28 +104,36 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
 
             for (let i = 0; i < prevPath.length - 1; i++) {
                 const spurNode = prevPath[i]
+                const spurKey = nodeKeyOf(spurNode)                         // ← convert to string
                 const rootPath = prevPath.slice(0, i + 1)
 
                 const blockedEdges = edgeBlocker(rootPath, A.map(p => p.bestPath))
                 const spurConfig = { ...config, blockedEdges }
 
-                const nowAtSpur = A[A.length - 1].clock[spurNode]
-                const spurResult = findShortestPath(tripGraph, spurNode, nowAtSpur, spurConfig)
+                const nowAtSpur = A[A.length - 1].clock[spurKey]            // ← use spurKey
+                const spurResult = findShortestPath(tripGraph, spurKey, nowAtSpur, spurConfig)   // ← use spurKey
                 if (spurResult.bestPath === null) continue
 
                 const fullPath = rootPath.slice(0, -1).concat(spurResult.bestPath)
                 const mergedClock = { ...A[A.length - 1].clock, ...spurResult.clock }
                 const mergedWaitAt = { ...A[A.length - 1].waitAt, ...spurResult.waitAt }
 
-                // root cost (up to spur node, from the path we're spurring off of) + spur cost (spur node onward, starts at 0)
-                const totalCost = A[A.length - 1].cost[spurNode] + spurResult.cost["DESTINATION"]
+                const spurBaseCost = A[A.length - 1].cost[spurKey]
+                const adjustedSpurCost = {}
+                for (const key in spurResult.cost) {
+                    adjustedSpurCost[key] = spurBaseCost + spurResult.cost[key]
+                }
+                const mergedCost = { ...A[A.length - 1].cost, ...adjustedSpurCost }
 
-                candidates.push({ bestPath: fullPath, clock: mergedClock, waitAt: mergedWaitAt, totalCost })
+                const totalCost = mergedCost["DESTINATION"]   // now just a lookup, same value as before
+
+                candidates.push({ bestPath: fullPath, clock: mergedClock, cost: mergedCost, waitAt: mergedWaitAt, totalCost })
             }
 
             // dedupe against paths already accepted
-            const seen = new Set(A.map(p => p.bestPath.join("|")))
-            const fresh = candidates.filter(c => !seen.has(c.bestPath.join("|")))
+            const pathSignature = (path) => path.map(nodeKeyOf).join("|")   // ← new helper
+            const seen = new Set(A.map(p => pathSignature(p.bestPath)))
+            const fresh = candidates.filter(c => !seen.has(pathSignature(c.bestPath)))
 
             if (fresh.length === 0) break   // graph's exhausted, no more distinct alternatives exist
 
@@ -553,13 +561,16 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                             <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
                                                 <FontAwesomeIcon icon="fa-solid fa-clock" className="text-amber-500" />
                                                 <p className="text-sm font-medium text-amber-800">
-                                                    {(() => {
-                                                        const nowM = new Date().getHours() * 60 + new Date().getMinutes()
-                                                        const mins = Math.round(seg.departsAtMin - nowM)
-                                                        return mins <= 0
-                                                            ? `Departing now — ${seg.departsAt}`
-                                                            : `Wait ${mins} min — departs ${seg.departsAt}`
-                                                    })()}
+                                                    {departAt !== null
+                                                        ? `Wait ${seg.waitMin} min — departs ${seg.departsAt}`
+                                                        : (() => {
+                                                            const nowM = new Date().getHours() * 60 + new Date().getMinutes()
+                                                            const mins = Math.round(seg.departsAtMin - nowM)
+                                                            return mins <= 0
+                                                                ? `Departing now — ${seg.departsAt}`
+                                                                : `Wait ${mins} min — departs ${seg.departsAt}`
+                                                        })()
+                                                    }
                                                 </p>
                                             </div>
                                             <button
