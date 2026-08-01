@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import getRouteCentroid, { webMercatorToLatLng } from "../utils/coords.js"
 import scheduleGenerator, { minutesToClockString, getNextArrivalStatus } from '../utils/schedule.js'
+import { useLiveBuses } from '../hooks/busPositions.js'
 import { useEffect, useRef, useState } from 'react'
 import { db } from '../data/firebase.js'
 import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore'
@@ -13,6 +14,7 @@ export default function RoutePage({route}){
     const [routeStops, setRouteStops] = useState([])
     const [loading, setLoading] = useState(true)
     const [expandedStop, setExpandedStop] = useState(null)
+    const busPositions = useLiveBuses()
 
     // 📡 EFFECT: Fetch individual route metadata and its relational stops array
     useEffect(() => {
@@ -75,6 +77,8 @@ export default function RoutePage({route}){
             map.current.fitBounds([[minlng, minlat], [maxlng, maxlat]], { padding: 40 })
             
             const stops =  routeStops.sort((a,b) => a.stopNum - b.stopNum)
+            const lineCoords = stops.map(stop => [stop.coords[1], stop.coords[0]])
+            if (stops.length > 1) lineCoords.push(lineCoords[0]) //wrapback to initial
 
             //Line
             map.current.addSource(`route-${currRoute.id}`, {
@@ -83,7 +87,7 @@ export default function RoutePage({route}){
                     type: 'Feature',
                     geometry: {
                     type: 'LineString',
-                    coordinates: stops.map(stop => [stop.coords[1], stop.coords[0]])
+                    coordinates: lineCoords
                     }
                 }
             })
@@ -134,6 +138,43 @@ export default function RoutePage({route}){
 
         })  
       }, [currRoute, routeStops])
+
+      useEffect(() => {
+        if (!map.current || !currRoute || !busPositions.length) return
+        if (!map.current.isStyleLoaded()) return
+
+        const routeBuses = busPositions.filter(bus =>
+            bus.attributes.created_user.includes(currRoute.name)
+        )
+
+        const busGeoJSON = {
+            type: 'FeatureCollection',
+            features: routeBuses.map(bus => ({
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [bus.geometry.x, bus.geometry.y]
+                }
+            }))
+        }
+
+        if (!map.current.getSource('bus-positions')) {
+            map.current.addSource('bus-positions', { type: 'geojson', data: busGeoJSON })
+            map.current.addLayer({
+                id: 'bus-layer',
+                type: 'circle',
+                source: 'bus-positions',
+                paint: {
+                    'circle-radius': 8,
+                    'circle-color': currRoute.color,
+                    'circle-stroke-color': '#ffffff',
+                    'circle-stroke-width': 2
+                }
+            })
+        } else {
+            map.current.getSource('bus-positions').setData(busGeoJSON)
+        }
+    }, [busPositions, currRoute])
 
     if (loading || !currRoute) return <div className="p-6 text-slate-500">⏳ Syncing route details...</div>;
     

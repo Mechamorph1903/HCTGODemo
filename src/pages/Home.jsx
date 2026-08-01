@@ -5,6 +5,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { db } from '../data/firebase.js'
 import { collection, getDocs } from 'firebase/firestore'
 import mapboxgl from 'mapbox-gl'
+import { useLiveBuses } from '../hooks/busPositions.js'
 
 
 export default function Home() {
@@ -16,8 +17,6 @@ export default function Home() {
   const map = useRef(null) // stores the mapbox instance
   mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
-  //This is where we will store and constantly update live bus positions
-  const [busPositions, setBusPositions] = useState([])
  //this gets the created_user from the api and matches it to the appropriate object in the routes array so as to get the right color for bus icons
   const getBusColor = (createdUser) => {
     const route = routes.find(route => createdUser.includes(route.name))
@@ -61,22 +60,7 @@ export default function Home() {
   }, []);
 
   //EFFECT 2: Live ESRI/ArcGIS Bus Tracker API (runs every 5 seconds)
-  useEffect(() => {
-
-    const fetchBusLive = async () => {
-      const response = await fetch("https://utility.arcgis.com/usrsvcs/servers/b02066689d504f5f9428029f7268e060/rest/services/Hosted/8bd5047cc5bf4195887cc5237cf0d3e0_Track_View/FeatureServer/1/query?f=json&where=1=1&outFields=*").then( res => res.json()).then( data => setBusPositions(data.features)).catch(err => console.log(err))
-    }
-
-
-    fetchBusLive()
-
-    const timer = setInterval(fetchBusLive, 5000)
-
-    return () => {
-      //removes refresh timer when component unmounts so as to prevent it calling when it doesnt exist and causing an error
-      clearInterval(timer)
-    }
-  }, [])
+  const busPositions = useLiveBuses()
 
   //EFFECT 3: create map object
   useEffect(() => {
@@ -107,18 +91,21 @@ export default function Home() {
         const routeStops = allStops
           .filter(stop => stop.routeId === route.id)
           .sort((a, b) => a.stopNum - b.stopNum)
+
+        const lineCoords = routeStops.map(stop => [stop.coords[1], stop.coords[0]])
+        if (routeStops.length > 1) lineCoords.push(lineCoords[0])
          
-          if(!map.current.getSource(`route-${route.id}`)){
+        if(!map.current.getSource(`route-${route.id}`)){
           map.current.addSource(`route-${route.id}`, {
           type: 'geojson',
           data: {
             type: 'Feature',
             geometry: {
               type: 'LineString',
-              coordinates: routeStops.map(stop => [stop.coords[1], stop.coords[0]])
+              coordinates: lineCoords
             }
           }
-        })
+        })  
 
         map.current.addLayer({
           id: `route-line-${route.id}`,

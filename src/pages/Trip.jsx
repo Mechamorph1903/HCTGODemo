@@ -9,6 +9,7 @@ import mapboxgl from 'mapbox-gl'
 import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey,nodeKeyOf, pathToSegments, buildOption, edgeBlocker} from '../utils/navigation.js'
 import { minutesToTimeInput, minutesToClockString } from "../utils/schedule.js";
 import { useDebounce } from "../hooks/debounce.js";
+import { useLiveBuses } from "../hooks/busPositions.js";
 
 export default function Trip({ initialDestination, initialDestinationCoords }) {
     const [routes, setRoutes] = useState([]) 
@@ -30,6 +31,10 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
     const [departAt, setDepartAt] = useState(null)
     const [nowTick, setNowTick] = useState(Date.now())
     const [showTimePicker, setShowTimePicker] = useState(false)
+    const [tripStarted, setTripStarted] = useState(false)
+    const [activeSegmentIndex, setActiveSegmentIndex] = useState(0)
+    const [liveUserLocation, setLiveUserLocation] = useState(null)
+    const busPositions = useLiveBuses()
 
     const groupedStops = useMemo(() => stopGrouper(allStops), [allStops])
     const adjacencyList = useMemo(() => buildTransitGraph(groupedStops, routes), [groupedStops, routes])
@@ -100,18 +105,26 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
 
         while (A.length < k) {
             const prevPath = A[A.length - 1].bestPath
+
+            // segment boundaries only — where the outgoing mode changes from the
+            // previous node's outgoing mode. Index 0 (ORIGIN) always counts.
+            const boundaryIndices = [0]
+            for (let i = 1; i < prevPath.length - 1; i++) {
+                if (prevPath[i].routeId !== prevPath[i - 1].routeId) boundaryIndices.push(i)
+            }
+
             const candidates = []
 
-            for (let i = 0; i < prevPath.length - 1; i++) {
+            for (const i of boundaryIndices) {
                 const spurNode = prevPath[i]
-                const spurKey = nodeKeyOf(spurNode)                         // ← convert to string
+                const spurKey = nodeKeyOf(spurNode)
                 const rootPath = prevPath.slice(0, i + 1)
 
                 const blockedEdges = edgeBlocker(rootPath, A.map(p => p.bestPath))
                 const spurConfig = { ...config, blockedEdges }
 
-                const nowAtSpur = A[A.length - 1].clock[spurKey]            // ← use spurKey
-                const spurResult = findShortestPath(tripGraph, spurKey, nowAtSpur, spurConfig)   // ← use spurKey
+                const nowAtSpur = A[A.length - 1].clock[spurKey]
+                const spurResult = findShortestPath(tripGraph, spurKey, nowAtSpur, spurConfig)
                 if (spurResult.bestPath === null) continue
 
                 const fullPath = rootPath.slice(0, -1).concat(spurResult.bestPath)
@@ -124,18 +137,16 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                     adjustedSpurCost[key] = spurBaseCost + spurResult.cost[key]
                 }
                 const mergedCost = { ...A[A.length - 1].cost, ...adjustedSpurCost }
-
-                const totalCost = mergedCost["DESTINATION"]   // now just a lookup, same value as before
+                const totalCost = mergedCost["DESTINATION"]
 
                 candidates.push({ bestPath: fullPath, clock: mergedClock, cost: mergedCost, waitAt: mergedWaitAt, totalCost })
             }
 
-            // dedupe against paths already accepted
-            const pathSignature = (path) => path.map(nodeKeyOf).join("|")   // ← new helper
+            const pathSignature = (path) => path.map(nodeKeyOf).join("|")
             const seen = new Set(A.map(p => pathSignature(p.bestPath)))
             const fresh = candidates.filter(c => !seen.has(pathSignature(c.bestPath)))
 
-            if (fresh.length === 0) break   // graph's exhausted, no more distinct alternatives exist
+            if (fresh.length === 0) break
 
             fresh.sort((a, b) => a.totalCost - b.totalCost)
             A.push(fresh[0])
@@ -356,6 +367,18 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
   
     
 
+
+
+    //RT Navigation
+    useEffect(() => {
+        if (!tripStarted) return
+        const watchId = navigator.geolocation.watchPosition(
+            (position) => setLiveUserLocation([position.coords.latitude, position.coords.longitude]),
+            (error) => console.log('Live tracking error:', error),
+            { enableHighAccuracy: true }
+        )
+        return () => navigator.geolocation.clearWatch(watchId)
+    }, [tripStarted])
 
     return(
         <div className="h-full text-black text-xl font-sans antialiased mx-auto shadow-xl p-5">
@@ -606,6 +629,15 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                             ))}
                         </div>
                     )}
+
+                    {/* {selectedOption && !tripStarted && (
+                        <button
+                            onClick={() => setTripStarted(true)}
+                            className="mt-4 w-full py-3 rounded-2xl bg-blue-600 text-white font-semibold"
+                        >
+                            Start Trip
+                        </button>
+                    )} */}
 
 
         </div>
