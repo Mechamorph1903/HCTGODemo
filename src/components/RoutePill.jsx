@@ -17,6 +17,7 @@ export default function RoutePill({name, color, alt, passthrough, routeStatus}){
                 ))}</h6>
             </div>
             <div>
+                {/*only show a status badge when the route is actively delayed/detoured, otherwise render nothing*/}
                 {
                     routeStatus.status === "Active" && (
                         routeStatus.type === "Delay" ? (

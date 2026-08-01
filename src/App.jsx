@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRef, useEffect } from 'react'
+import { AuthProvider } from './context/AuthContext.jsx'
 import BottomNav from './components/BottomNav'
 import Home from './pages/Home'
 import Lines from './pages/Lines'
@@ -62,6 +63,8 @@ export default function App() {
   const activeVariant = isInfo ? scrollVariants : slideVariants;
 
   return (
+    //AuthProvider signs the user in anonymously once here and hands uid/profile to every page below
+    <AuthProvider>
     <div className="mx-auto h-screen max-w-lg bg-white text-black flex flex-col">
       <main className='flex-1 border-x-2 border-black overflow-y-auto overflow-x-hidden scroll-smooth overscroll-contain[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative '>
         <AnimatePresence mode='wait' custom={direction}>
@@ -96,5 +99,6 @@ export default function App() {
       </main>
       <BottomNav />
     </div>
+    </AuthProvider>
   )
 }

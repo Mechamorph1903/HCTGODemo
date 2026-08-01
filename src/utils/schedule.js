@@ -30,6 +30,7 @@
         return schedule
     }
 
+    //turns a raw minute count (past midnight) into a "H:MM AM/PM" display string
     export function minutesToClockString(totalMinutes){
         totalMinutes = Math.round(((totalMinutes % 1440) + 1440) % 1440) //prevents times going past 12:59 and handle the next-day rollover.
         let hour = Math.floor(totalMinutes/60)
@@ -51,12 +52,14 @@
         return `${hour}:${minute} ${ampm}`
     }
 
+    //same idea but formatted as "HH:MM" for an <input type="time">
     export const minutesToTimeInput = (min) => {
         const h = Math.floor(min / 60) % 24
         const m = Math.round(min % 60)
         return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
     }
 
+    //scans a stop's precomputed arrival times and returns the next one after right now, or "Ended for the day" if there isn't one
     export function getNextArrivalStatus(stopTimesArray, endTime) {
     // 1. Get the current time in minutes past midnight
     const now = new Date();

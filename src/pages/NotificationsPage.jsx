@@ -1,6 +1,7 @@
 import { useState } from "react"
 import AlertPill from "../components/AlertPill"
 
+//hardcoded alerts for now, swap this out later
 const initialAlerts = [
   {
     subject: "Summer in the Hub City! ☀️",
@@ -41,6 +42,7 @@ export default function NotificationsPage() {
     <div className="flex flex-col items-center justify-center h-full text-black text-xl gap-4">
       <h1 className="text-2xl font-bold">Alerts</h1>
       <div className="p-4 flex flex-col gap-3">
+        {/*one pill per alert, fall back to a message if the list is ever empty*/}
         {alerts ? alerts.map((alert, index) => (
           <AlertPill
             key={index}

@@ -2,6 +2,7 @@ import { minutesToClockString } from "./schedule"
 
 
 
+//buckets every stop by its route color and sorts each bucket by stop order, so the graph builder can walk each route in sequence
 export const stopGrouper = (stops) => {
     const grouped = {
       blue: [],
@@ -25,14 +26,17 @@ export const stopGrouper = (stops) => {
   }
 
 
+//graph nodes are keyed by "routeId::stopName" so the same physical stop on two different routes gets two distinct nodes
 export const nodeKey = (routeId, name) => `${routeId}::${name}`
 
 export const nodeKeyOf = (node) => node.stopRoute ? nodeKey(node.stopRoute, node.name) : node.name
 
+//dual-bus routes run two buses on the same loop, so riders effectively see half the posted frequency
 export const effectiveHeadway = (route) =>
 	route.isDualBus ? route.frequency[0]/ 2 : route.frequency[0]
 
 
+//given when a stop's first/last bus of the day passes and the current time, finds the next actual departure minute (handles wrapping past midnight into the next day's first pass)
 export const getNextDeparture = (firstPassMin, frequency, currentMin, lastPassMin) => {
 	const dayOffset = Math.floor(currentMin / 1440) * 1440
     const localNow = currentMin - dayOffset
@@ -51,6 +55,7 @@ export const getNextDeparture = (firstPassMin, frequency, currentMin, lastPassMi
 
 
 
+//convenience wrapper around getNextDeparture for a specific route/stop pair
 export const stopDeparture = (route, stop, currentMin) => {
 	const firstPassMin = route.runtime.start + stop.minuteOffset
 	const headway = effectiveHeadway(route)
@@ -62,9 +67,10 @@ export const stopDeparture = (route, stop, currentMin) => {
 
 
 
+//builds the adjacency list dijkstra's runs over: each stop links to the next stop on its own route (with the loop wrapping the last stop back to the first), plus "transfer edges" connecting stops on different routes that share the same physical location
 export const buildTransitGraph = (groupedStops, routes) => {
 	const adjacencyList = {}
-	
+
 
 	for(const route in groupedStops){
 		const stops = groupedStops[route]
@@ -97,8 +103,7 @@ export const buildTransitGraph = (groupedStops, routes) => {
 		}
 	}
 
-	//transfer edges
-
+	//transfer edges - connect same-named stops across different routes so riders can switch buses there
 	for(const route in groupedStops){
 		let stops = groupedStops[route]
 
@@ -147,6 +152,7 @@ export const buildTransitGraph = (groupedStops, routes) => {
 	return adjacencyList
 }
 
+//walks dijkstra's `parent` map backwards from target to start to rebuild the actual route, then turns the "routeId::stopName" keys back into {name, stopRoute, routeId} stop objects
 export const getPath = (parent, target) => {
     const pathArr = [{ key: target, routeId: parent[target]?.routeId }]
 	const seen = new Set([target])
@@ -168,6 +174,8 @@ export const getPath = (parent, target) => {
     })
 }
 
+//time-dependent dijkstra's: cost isn't just distance, it factors in wait time for the next bus, a walk penalty, and an optional transfer penalty.
+//`config.blockedEdges` lets us block edges the best path already used so a second run is forced to find a genuinely different route (this is how the k-shortest-path alternatives get generated, see edgeBlocker below)
 export const djisktras = (graph,start, nowMin, stopLookup, routeLookup, config = {}) => {
 	const walkPenalty = config.walkPenalty ?? 2.5
     const transferPenalty = config.transferPenalty ?? 0
@@ -256,8 +264,9 @@ export function findNearestStop(lat, lng, allStops){
 	return closestStop
 }
 
-const sessionToken = crypto.randomUUID();
+const sessionToken = crypto.randomUUID(); //keeps a search's suggest->retrieve calls billed as one session with mapbox
 
+//address/POI autocomplete via mapbox search box, biased toward hattiesburg
 export const geocodeAddress = async (searchText) => {
 	const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(searchText)}&session_token=${sessionToken}&proximity=-89.2903,31.3271&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=5&country=US&types=address,poi,place`
 	try {
@@ -270,6 +279,7 @@ export const geocodeAddress = async (searchText) => {
   }
 }
 
+//once the rider picks a suggestion from geocodeAddress, this resolves it to actual coordinates
 export const retrievePlace = async (suggestion_id) => {
 	const url = `https://api.mapbox.com/search/searchbox/v1/retrieve/${suggestion_id}?session_token=${sessionToken}&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`
 	try {
@@ -283,6 +293,7 @@ export const retrievePlace = async (suggestion_id) => {
   }
 }
 
+//pulls turn-by-turn walking directions from mapbox for the walk portions of a trip (walk to first stop, transfers, walk from last stop to destination)
 export const getWalkingDirections =  async (originCoords, destCoords) => {
 	//[lng,lat]
 	const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${originCoords[1]},${originCoords[0]};${destCoords[1]},${destCoords[0]}?alternatives=true&steps=true&geometries=geojson&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`
@@ -305,6 +316,7 @@ export const getWalkingDirections =  async (originCoords, destCoords) => {
 	}
 }
 
+//finds every stop within maxMeters of a point (flat-earth approximation, fine at city scale) - used to find candidate boarding/alighting stops near the origin and destination
 export const findStopsWithin = (lat, lng, allStops, maxMeters = 1000) => {
 	const results = []
 	for (const stop of allStops){
@@ -321,8 +333,10 @@ export const findStopsWithin = (lat, lng, allStops, maxMeters = 1000) => {
 
 }
 
+//rough conversion assuming an average walking pace, used to weight walk edges in minutes like everything else in the graph
 export const metersToWalkMinutes = (meters) => (meters * 1.3) / 83
 
+//clones the base transit graph and grafts on temporary ORIGIN/DESTINATION nodes wired to nearby stops (plus a direct walk edge between them), so dijkstra's can be run for this specific trip without mutating the shared graph
 export const buildTripGraph = (baseGraph, originCoords, destCoords, allStops) => {
 	const graph = {}
 	for (const node in baseGraph) {
@@ -363,6 +377,7 @@ export const buildTripGraph = (baseGraph, originCoords, destCoords, allStops) =>
 	return graph	
 }
 
+//collapses a raw stop-by-stop path into contiguous ride/walk segments - consecutive stops on the same route (or consecutive walk hops) get merged into one segment instead of staying as individual edges
 export const pathToSegments = (path) => {
     const segments = []
 
@@ -389,6 +404,7 @@ export const pathToSegments = (path) => {
 }
 
 
+//fills each segment in with the actual display data (walking geometry/steps, board/alight stop, wait time, departure clock) and packages the whole thing into one trip "option" for the UI
 export const buildOption = async (segments, clock, nowMin, originCoords, destinationCoords, stopLookup, routeLookup, waitAt, meta) => {
 	const resolveCoord = (node) => {
 		if (node.name === "ORIGIN") return [originCoords[1], originCoords[0]]
@@ -450,6 +466,7 @@ export const buildOption = async (segments, clock, nowMin, originCoords, destina
 
 }
 
+//for k-shortest-path alternatives: compares the best (root) path against paths we've already accepted and picks the edge where they diverge, so we can block it and force the next dijkstra's run down a different route
 export const edgeBlocker = (rootPath, acceptedPaths) => {
 	let match = 0
 	const blockedEdges = new Set()

@@ -7,6 +7,7 @@
 
 export default function AlertPill({subject, message, priority, buses}){
  
+    //maps an alert's priority to the color of its left border
     const priorityColor = {
         low: 'border-green-600',
         medium: 'border-yellow-500',

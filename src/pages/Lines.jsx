@@ -10,6 +10,7 @@ export default function Lines() {
   const [routes, setRoutes] = useState([])
   const [loading, setLoading] = useState(true)
 
+  //EFFECT: load every route's metadata from firestore once on mount so we can list a pill per route
   useEffect(() => {
     async function fetchRoutes() {
       try {
@@ -37,7 +38,7 @@ export default function Lines() {
       <div className="justify-self-end">
         <FontAwesomeIcon icon="fa-solid fa-route" />
       </div>      
-      {/* //where we will map all the routepills */}
+      {/* one RoutePill per route, wrapped in a NavLink so tapping it opens that route's page */}
       <div className="col-span-3 row-span-8 flex flex-col gap-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-y">
         {
           routes.map((route,index) => (

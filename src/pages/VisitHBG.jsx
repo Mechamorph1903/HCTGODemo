@@ -1,3 +1,4 @@
+//placeholder page for the Explore tab, still needs the actual HBG spots content (see ExploreCard)
 export default function ExplorePage(){
 
     return(

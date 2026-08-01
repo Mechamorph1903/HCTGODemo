@@ -10,6 +10,7 @@ export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
+  //EFFECT: pull the route list from firestore so we have something to list as favourite-able
   useEffect(() => {
     async function loadRoutes() {
       try {
@@ -28,6 +29,7 @@ export default function SettingsPage() {
     loadRoutes();
   }, []);
 
+  //toggles a route in/out of favourites, purely local state for now - not persisted to the user's profile yet
   const toggleFav = (name) => {
     setFavRoutes(prev =>
       prev.includes(name) ? prev.filter(r => r !== name) : [...prev, name]
@@ -39,7 +41,7 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col h-full text-black overflow-y-auto [&::-webkit-scrollbar]:hidden">
       
-      {/* Profile Header */}
+      {/* Profile Header - still placeholder text, needs to pull from the user's firestore profile once wired up */}
       <div className="flex items-center gap-4 p-6 border-b border-slate-100">
         <div className="h-14 w-14 rounded-full bg-slate-200 flex items-center justify-center text-2xl font-bold text-slate-500">
           R
@@ -98,7 +100,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Danger Zone */}
+        {/* Danger Zone - delete button doesn't actually delete anything yet, just shows the confirm step */}
         <div>
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Account</p>
           {!showDeleteConfirm ? (
