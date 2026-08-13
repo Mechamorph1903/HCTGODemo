@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { auth, db } from '../data/firebase.js'
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth'
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, collection, getDocs, query, where } from 'firebase/firestore'
 
 export const useAuth = () => {
     const [uid, setUid] = useState(null)
@@ -24,7 +24,7 @@ export const useAuth = () => {
             if (snapshot.exists()) {
                 setProfile(snapshot.data())
             } else {
-                const newProfile = { name: null, favoriteRoutes: [] }
+                const newProfile = { firstName: null, lastName: null, userName: null, favoriteRoutes: [] }
                 await setDoc(userRef, newProfile)
                 setProfile(newProfile)
             }
@@ -34,9 +34,9 @@ export const useAuth = () => {
     }, [])
 
     //updates the user's display name in firestore and mirrors it in local state
-    const setName = async (name) => {
-        await updateDoc(doc(db, "users", uid), { name })
-        setProfile(prev => ({ ...prev, name }))
+    const setName = async ({firstName, lastName, userName}) => {
+        await updateDoc(doc(db, "users", uid), { firstName, lastName, userName })
+        setProfile(prev => ({ ...prev, firstName, lastName, userName }))
     }
 
     //adds/removes a route from the user's favorites in firestore and mirrors the change in local state
@@ -53,5 +53,11 @@ export const useAuth = () => {
         }))
     }
 
-    return { uid, profile, setName, toggleFavorite }
+    const isUsernameTaken = async (candidate) => {
+        const q = query(collection(db, "users"), where("userName", "==", candidate))
+        const snapshot = await getDocs(q)
+        return !snapshot.empty
+    }
+
+    return { uid, profile, setName, toggleFavorite, isUsernameTaken}
 }
