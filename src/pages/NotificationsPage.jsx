@@ -39,7 +39,7 @@ export default function NotificationsPage() {
   const [alerts] = useState(initialAlerts)
 
   return (
-    <div className="flex flex-col items-center justify-center h-full text-black text-xl gap-4">
+    <div className="flex flex-col items-center justify-center h-full text-black dark:text-white text-xl gap-4">
       <h1 className="text-2xl font-bold">Alerts</h1>
       <div className="p-4 flex flex-col gap-3">
         {/*one pill per alert, fall back to a message if the list is ever empty*/}

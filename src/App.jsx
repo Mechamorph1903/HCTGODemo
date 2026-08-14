@@ -12,6 +12,7 @@ import RoutePage from './pages/RoutePage'
 import InfoPage from './pages/Information'
 import Trip from './pages/Trip'
 import NameGate from './components/NameGate.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
 
 
 
@@ -65,43 +66,45 @@ export default function App() {
 
   return (
     //AuthProvider signs the user in anonymously once here and hands uid/profile to every page below
-    <AuthProvider>
-    <div className="mx-auto h-screen max-w-lg bg-white text-black flex flex-col">
-      <main className='flex-1 border-x-2 border-black overflow-y-auto overflow-x-hidden scroll-smooth overscroll-contain[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative '>
-        <NameGate>
-          <AnimatePresence mode='wait' custom={direction}>
-            <motion.div
-              className='w-full h-full absolute origin-top'
-              custom={direction} //this is what is passed into the variants to use for the dir variables to determine slide direction
-              key={location.pathname}
-              variants={activeVariant}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-            >
-              <Routes location={location}>
-                <Route path='/' element={<Home />} />
-                <Route path='/Lines' element={<Lines />} />
-                <Route path='/Info' element={<InfoPage />} />
-                <Route path='/Alerts' element={<NotificationsPage />} />
-                <Route path='/Trip' element={<Trip />} />
-                <Route path='/Explore' element={<ExplorePage />} />
-                <Route path='/Settings' element={<SettingsPage />} />
-                <Route path='/Green' element={<RoutePage route="Green"/>} />
-                <Route path='/Purple' element={<RoutePage route="Purple"/>} />
-                <Route path='/Gold' element={<RoutePage route="Gold"/>} />
-                <Route path='/Blue' element={<RoutePage route="Blue"/>} />
-                <Route path='/Red' element={<RoutePage route="Red"/>} />
-                <Route path='/Orange' element={<RoutePage route="Orange"/>} />
-                <Route path='/Brown' element={<RoutePage route="Brown"/>} />
-              </Routes>
-            </motion.div>
-          </AnimatePresence>
-        </NameGate>
-      </main>
-      <BottomNav />
-    </div>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <div className="mx-auto h-screen max-w-lg bg-white text-black dark:bg-slate-900 dark:text-white flex flex-col">
+          <main className='flex-1 border-x-2 border-black dark:border-slate-700 overflow-y-auto overflow-x-hidden scroll-smooth overscroll-contain[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative '>
+            <NameGate>
+              <AnimatePresence mode='wait' custom={direction}>
+                <motion.div
+                  className='w-full h-full absolute origin-top'
+                  custom={direction} //this is what is passed into the variants to use for the dir variables to determine slide direction
+                  key={location.pathname}
+                  variants={activeVariant}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                >
+                  <Routes location={location}>
+                    <Route path='/' element={<Home />} />
+                    <Route path='/Lines' element={<Lines />} />
+                    <Route path='/Info' element={<InfoPage />} />
+                    <Route path='/Alerts' element={<NotificationsPage />} />
+                    <Route path='/Trip' element={<Trip />} />
+                    <Route path='/Explore' element={<ExplorePage />} />
+                    <Route path='/Settings' element={<SettingsPage />} />
+                    <Route path='/Green' element={<RoutePage route="Green"/>} />
+                    <Route path='/Purple' element={<RoutePage route="Purple"/>} />
+                    <Route path='/Gold' element={<RoutePage route="Gold"/>} />
+                    <Route path='/Blue' element={<RoutePage route="Blue"/>} />
+                    <Route path='/Red' element={<RoutePage route="Red"/>} />
+                    <Route path='/Orange' element={<RoutePage route="Orange"/>} />
+                    <Route path='/Brown' element={<RoutePage route="Brown"/>} />
+                  </Routes>
+                </motion.div>
+              </AnimatePresence>
+            </NameGate>
+          </main>
+          <BottomNav />
+        </div>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }

@@ -15,7 +15,7 @@ export default function AlertPill({subject, message, priority, buses}){
     }
 
     return(
-        <div className={`p-2 text-sm border-l-3 rounded-sm ${priorityColor[priority]} bg-slate-100`}>
+        <div className={`p-2 text-sm border-l-3 rounded-sm ${priorityColor[priority]} bg-slate-100 dark:bg-slate-800 dark:text-white`}>
             <div className="flex items-center justify-between ">
                 <h1 className="text-md font-bold">{subject}</h1>
                 {/* //there will be a map here to put all the color dots of every bus with notis */}

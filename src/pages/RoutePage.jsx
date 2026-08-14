@@ -176,15 +176,18 @@ export default function RoutePage({route}){
         }
     }, [busPositions, currRoute])
 
-    if (loading || !currRoute) return <div className="p-6 text-slate-500">⏳ Syncing route details...</div>;
-    
-    
+    if (loading || !currRoute) return <div className="p-6 text-slate-500 dark:text-slate-400">⏳ Syncing route details...</div>;
+
+
 
     return(
-        <div className='text-black p-6 pt-3 relative'>
-            <div className='flex justify-between items-center h-15 sticky top-0 left-0 z-[2000] bg-white/70 backdrop-blur-md border-b border-slate-200/50 mb-3'>
-                <NavLink to="/Lines"><FontAwesomeIcon icon="fa-solid fa-angle-left"  className='text-3xl'/></NavLink>
-                <div className={`text-3xl rounded-xl h-3 w-3`}></div>
+        <div className='text-black dark:text-white p-6 pt-3 relative'>
+            <div className='flex items-center gap-3 h-15 sticky top-0 left-0 z-[2000] bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-700/50 mb-3'>
+                <NavLink to="/Lines" className='text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition-colors shrink-0'>
+                    <FontAwesomeIcon icon="fa-solid fa-angle-left" className='text-2xl' />
+                </NavLink>
+                <span className='h-3 w-3 rounded-full shrink-0' style={{ backgroundColor: currRoute.color }}></span>
+                <h2 className='font-bold text-lg tracking-tight truncate'>{currRoute.name} Route {currRoute.alt}</h2>
             </div>
             <div className='grid'>
                 <div>
@@ -218,8 +221,8 @@ export default function RoutePage({route}){
                         <h1 className='text-2xl'>{currRoute.name} Route {currRoute.alt}</h1>
                         {/*This is where we put the lil info about the route and the times i.e use this route to get through bla bla bla*/}
                         <p className='p-4'>{currRoute.info}</p>
-                        <p className='text-slate-500'>Run Time: {minutesToClockString(currRoute.runtime.start)} to {minutesToClockString(currRoute.runtime.end)}</p>
-                        <p className='text-slate-500'>Frequency: {currRoute.frequency.length === 2 ? `${currRoute.frequency[1]} minutes (2 Buses) - ${currRoute.frequency[0]} minutes (1 Bus)` : `${currRoute.frequency[0]} minutes`} </p>
+                        <p className='text-slate-500 dark:text-slate-400'>Run Time: {minutesToClockString(currRoute.runtime.start)} to {minutesToClockString(currRoute.runtime.end)}</p>
+                        <p className='text-slate-500 dark:text-slate-400'>Frequency: {currRoute.frequency.length === 2 ? `${currRoute.frequency[1]} minutes (2 Buses) - ${currRoute.frequency[0]} minutes (1 Bus)` : `${currRoute.frequency[0]} minutes`} </p>
                     </div>
 
                     {/**Mapbox container */}
@@ -235,7 +238,7 @@ export default function RoutePage({route}){
                         <span className='inline-block rounded-lg h-2 w-2 bg-purple-600'></span>
                         <span className='inline-block rounded-lg h-2 w-2 bg-orange-300'></span>
                     </div>
-                    <div className='border-l-2 border-l-slate-400 pl-4'>
+                    <div className='border-l-2 border-l-slate-400 dark:border-l-slate-600 pl-4'>
                         {/* for the stops. expands to show arrival times and/or stop pictures*/}
                         {
                             routeStops.map((stop, index) => {
@@ -253,40 +256,36 @@ export default function RoutePage({route}){
                                 
                                 
                                 return (
-                                <div className='grid grid-cols-3 justify-center items-center mb-5 border-2 border-slate-200 rounded-lg p-3 gap-2' key={index}> 
-                                    <div>{stop.name}</div>
-                                    <div className='flex gap-2'>
-                                        <p>Next Scheduled: </p>
-                                        <div className='text-sm'>{nextArrival}</div>
+                                <div className='grid grid-cols-[1fr_auto_2.25rem] justify-center items-center mb-5 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-3 gap-2' key={index}>
+                                    <div>
+                                        <p>{stop.name}</p>
+                                        {/*transfer dots live under the name now instead of the fixed-width action column, so a stop with more transfers can't shove the expand button out of alignment with the rows above/below it*/}
+                                        {stop.transfer?.available && stop.transfer?.connections?.length > 0 && (
+                                            <div id="transfers" className='flex flex-wrap gap-1.5 mt-1'>
+                                                {stop.transfer.connections.map((transferColor, tIdx) => (
+                                                    <span key={tIdx} className='inline-block rounded-lg h-2 w-2 shrink-0' style={{ backgroundColor: transferColor.trim().toLowerCase() }}></span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className='flex flex-row items-center justify-self-end'>
-                                        <div id="transfers" className='mr-5 flex gap-5 '>
-                                            {
-                                                stop.transfer?.available && stop.transfer?.connections ? (
-                                                    stop.transfer.connections.map((transferColor, tIdx) => (
-                                                        <p className='text-xs' key={tIdx}>
-                                                            <span className='inline-block rounded-lg h-2 w-2' style={{ backgroundColor: transferColor.trim().toLowerCase() }}></span>
-                                                        </p>
-                                                    ))
-                                                ) : <p></p>
-                                            }
-                                        </div>
-                                        <div onClick={() => {
-                                                setExpandedStop( expandedStop === stop.id ? null : stop.id)
-                                            }} className='rounded-md border-1 h-6 2-6 flex items-center justify-center'>
-                                                {
-                                                    expandedStop === stop.id ? <FontAwesomeIcon icon="fa-solid fa-minus" /> :  <FontAwesomeIcon icon="fa-solid fa-plus" />
-                                                }
-                                        </div>
+                                    <div className='flex flex-col items-end text-right whitespace-nowrap'>
+                                        <p className='text-xs text-slate-400 dark:text-slate-500'>Next Scheduled</p>
+                                        <p className='text-sm font-medium'>{nextArrival}</p>
                                     </div>
+                                    <button
+                                        onClick={() => setExpandedStop(expandedStop === stop.id ? null : stop.id)}
+                                        className='rounded-md border-1 h-6 w-6 flex items-center justify-center shrink-0 justify-self-end'
+                                    >
+                                        {expandedStop === stop.id ? <FontAwesomeIcon icon="fa-solid fa-minus" /> : <FontAwesomeIcon icon="fa-solid fa-plus" />}
+                                    </button>
                                     {
                                         expandedStop === stop.id && (
-                                            <div className='col-span-3 mt-3 bg-slate-50 p-3 rounded-md'>
-                                                <h3 className='text-sm font-semibold mb-2 text-slate-600'>Full Daily Schedule:</h3>
+                                            <div className='col-span-3 mt-3 bg-slate-50 dark:bg-slate-800 p-3 rounded-md'>
+                                                <h3 className='text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400'>Full Daily Schedule:</h3>
                                                 <div className='flex flex-wrap gap-2'>
                                                     {
                                                         stopTimes.map((time, index) => (
-                                                            <span key={index} className='bg-white border border-slate-200 px-2 py-1 rounded text-sm shadow-xs text-slate-700'>{time}</span>
+                                                            <span key={index} className='bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded text-sm shadow-xs text-slate-700 dark:text-slate-300'>{time}</span>
                                                         ))
                                                     }
                                                 </div>

@@ -490,3 +490,25 @@ export const edgeBlocker = (rootPath, acceptedPaths) => {
 
 	return blockedEdges
 }
+
+// top-N nearest stops by raw distance, not just the single closest —
+// needed because return-stop pairs sit at ~identical coordinates
+export function findNearestStops(lat, lng, allStops, n = 3) {
+    return [...allStops]
+        .map(stop => ({
+            stop,
+            distance: Math.sqrt((stop.coords[0] - lat) ** 2 + (stop.coords[1] - lng) ** 2)
+        }))
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, n)
+        .map(entry => entry.stop)
+}
+
+// how far (in minutes) the current time sits from this stop's nearest scheduled pass —
+// checks both the upcoming departure and one headway earlier, since "closest pass" could be either
+export const scheduleAlignment = (route, stop, nowMin) => {
+    const nextDeparture = stopDeparture(route, stop, nowMin)
+    const headway = effectiveHeadway(route)
+    const prevDeparture = nextDeparture - headway
+    return Math.min(Math.abs(nextDeparture - nowMin), Math.abs(prevDeparture - nowMin))
+}

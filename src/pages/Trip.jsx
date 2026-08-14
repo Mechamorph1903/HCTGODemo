@@ -381,21 +381,29 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
     }, [tripStarted])
 
     return(
-        <div className="h-full text-black text-xl font-sans antialiased mx-auto shadow-xl p-5">
-            <h1 className='text-2xl font-semibold font-black tracking-tight text-slate-900 mb-3'>Where to next?</h1>
+        <div className="h-full text-black dark:text-white text-xl font-sans antialiased mx-auto shadow-xl p-5">
+            <div className='flex items-center gap-3 mb-5'>
+                <div className='h-11 w-11 shrink-0 rounded-full bg-blue-50 dark:bg-blue-950 flex items-center justify-center text-blue-500 dark:text-blue-400'>
+                    <FontAwesomeIcon icon="fa-solid fa-route" />
+                </div>
+                <div>
+                    <h1 className='text-2xl font-black tracking-tight text-slate-900 dark:text-white leading-tight'>Where to next?</h1>
+                    <p className='text-sm text-slate-400 dark:text-slate-500'>Plan a trip across Hattiesburg</p>
+                </div>
+            </div>
 
             {/* searchBars */}
             <div className="flex flex-col items-center">
-                <div className='px-5 pt-4 pb-2 bg-white '>
-                    <label htmlFor="origin">From: </label>                
+                <div className='px-5 pt-4 pb-2 bg-white dark:bg-slate-900 '>
+                    <label htmlFor="origin" className='block mb-1.5 text-sm font-medium text-slate-500 dark:text-slate-400'>From: </label>
                     <div className='relative flex items-center mb-2'>
-                    <div className="absolute left-4 text-slate-400">
+                    <div className="absolute left-4 text-slate-400 dark:text-slate-500">
                         <FontAwesomeIcon icon="fa-solid fa-map-pin" />
                     </div>
-                    <input 
-                        type="text" 
-                        name="origin" 
-                        className='w-full pl-11 pr-24 py-3 bg-slate-100 text-slate-900 placeholder-slate-400 font-medium text-base rounded-2xl border border-transparent focus:outline-none focus:bg-white focus:border-blue-500/50 transition-all shadow-inner' 
+                    <input
+                        type="text"
+                        name="origin"
+                        className='w-full pl-11 pr-24 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium text-base rounded-2xl border border-transparent focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-blue-500/50 transition-all shadow-inner'
                         value={origin}
                         placeholder={userLocation ? "Current Location" : "Getting location..."}
                         onChange={(e) => setOrigin(e.target.value)}
@@ -405,37 +413,37 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                     />
                     </div>
                     {suggestions.length > 0 && activeInput == "origin" && (
-                        <div className="bg-white rounded-xl shadow-lg mt-1">
+                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg mt-1">
                             {suggestions.map((suggestion, i) => (
-                            <div 
+                            <div
                                 key={i}
                                 onClick={() => handleSuggestionClick(suggestion)}
-                                className="p-3 border-b border-slate-100 cursor-pointer hover:bg-slate-50"
+                                className="p-3 border-b border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
                             >
                                 <p className="font-medium text-sm">{suggestion.name}</p>
-                                <p className="text-xs text-slate-400">{suggestion.full_address}</p>
+                                <p className="text-xs text-slate-400 dark:text-slate-500">{suggestion.full_address}</p>
                             </div>
                             ))}
                         </div>
                     )}
                 </div>
-                
-                <div>
+
+                <div className='py-1.5 text-slate-400 dark:text-slate-500'>
                     {/* Arrow */}
                     <FontAwesomeIcon icon="fa-solid fa-arrows-up-down" />
                 </div>
 
-                <div className='px-5 pt-4 pb-2 bg-white '>
-                    <label htmlFor="destination">To: </label>
+                <div className='px-5 pt-4 pb-2 bg-white dark:bg-slate-900 '>
+                    <label htmlFor="destination" className='block mb-1.5 text-sm font-medium text-slate-500 dark:text-slate-400'>To: </label>
                     <div className='relative flex items-center mb-2'>
-                    <div className="absolute left-4 text-slate-400">
+                    <div className="absolute left-4 text-slate-400 dark:text-slate-500">
                         <FontAwesomeIcon icon="fa-solid fa-magnifying-glass" className="text-sm" />
                     </div>
-                    
-                    <input 
-                        type="text" 
-                        name="destination" 
-                        className='w-full pl-11 pr-24 py-3 bg-slate-100 text-slate-900 placeholder-slate-400 font-medium text-base rounded-2xl border border-transparent focus:outline-none focus:bg-white focus:border-blue-500/50 transition-all shadow-inner' 
+
+                    <input
+                        type="text"
+                        name="destination"
+                        className='w-full pl-11 pr-24 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium text-base rounded-2xl border border-transparent focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-blue-500/50 transition-all shadow-inner'
                         value={destination}
                         placeholder='Search destinations, lines...'
                         onChange={(e) => setDestination(e.target.value)}
@@ -445,15 +453,15 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                     />
                     </div>
                     {suggestions.length > 0 && activeInput == "destination" && (
-                        <div className="bg-white rounded-xl shadow-lg mt-1">
+                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg mt-1">
                             {suggestions.map((suggestion, i) => (
-                            <div 
+                            <div
                                 key={i}
                                 onClick={() => handleSuggestionClick(suggestion)}
-                                className="p-3 border-b border-slate-100 cursor-pointer hover:bg-slate-50"
+                                className="p-3 border-b border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
                             >
                                 <p className="font-medium text-sm">{suggestion.name}</p>
-                                <p className="text-xs text-slate-400">{suggestion.full_address}</p>
+                                <p className="text-xs text-slate-400 dark:text-slate-500">{suggestion.full_address}</p>
                             </div>
                             ))}
                         </div>
@@ -463,23 +471,23 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
             {/* ArriveType */}
             <button
                 onClick={() => setShowTimePicker(!showTimePicker)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-sm font-medium mt-3"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 text-sm font-medium mt-3"
             >
-                <FontAwesomeIcon icon="fa-solid fa-clock" className="text-slate-400" />
+                <FontAwesomeIcon icon="fa-solid fa-clock" className="text-slate-400 dark:text-slate-500" />
                 {departAt === null ? "Leave now" : `Leave at ${minutesToClockString(departAt)}`}
-                <FontAwesomeIcon icon="fa-solid fa-chevron-down" className="text-xs text-slate-400" />
+                <FontAwesomeIcon icon="fa-solid fa-chevron-down" className="text-xs text-slate-400 dark:text-slate-500" />
             </button>
 
             {showTimePicker && (
-                <div className="mt-2 p-4 rounded-2xl bg-white border border-slate-200 flex flex-col gap-3">
+                <div className="mt-2 p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
                     <button
                         onClick={() => { setDepartAt(null); setShowTimePicker(false) }}
-                        className={`text-left text-sm font-medium ${departAt === null ? "text-blue-600" : "text-slate-700"}`}
+                        className={`text-left text-sm font-medium ${departAt === null ? "text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-300"}`}
                     >
                         Leave now
                     </button>
                     <div className="flex items-center gap-3">
-                        <span className="text-sm text-slate-700">Leave at</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-300">Leave at</span>
                         <input
                             type="time"
                             value={departAt === null ? "" : minutesToTimeInput(departAt)}
@@ -488,14 +496,14 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                 const [h, m] = e.target.value.split(":").map(Number)
                                 setDepartAt(h * 60 + m)
                             }}
-                            className="bg-slate-100 rounded-xl px-3 py-2 text-sm"
+                            className="bg-slate-100 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm"
                         />
                     </div>
                 </div>
             )}
 
             {/* Map */}
-            <div id="Map" ref={mapContainer} className='h-128 w-110 overflow-hidden rounded-xl' />
+            <div id="Map" ref={mapContainer} className='h-128 w-full overflow-hidden rounded-xl mt-4' />
 
             {/* Options */}
                 {/* Objective dropdown */}
@@ -507,7 +515,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                 setActiveIndex(0)
                                 setExpandedSeg(null)
                             }}
-                            className="bg-slate-100 rounded-xl px-3 py-2 text-sm font-medium mt-4"
+                            className="bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm font-medium mt-4"
                         >
                             <option value="fastest">Fastest</option>
                             <option value="leastWalking">Least walking</option>
@@ -531,8 +539,8 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                         }}
                                         className={`flex flex-col items-start px-4 py-3 rounded-2xl border shrink-0 transition-colors ${
                                             activeIndex === i
-                                                ? 'bg-slate-900 text-white border-slate-900'
-                                                : 'bg-white text-slate-900 border-slate-200'
+                                                ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white'
+                                                : 'bg-white text-slate-900 border-slate-200 dark:bg-slate-800 dark:text-white dark:border-slate-700'
                                         }`}
                                     >
                                         <span className="text-xs font-medium opacity-70">
@@ -546,7 +554,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                         </div>
                     ) : (
                         tripOptions.fastest.length + tripOptions.leastWalking.length + tripOptions.fewestTransfers.length > 0 && (
-                            <p className="text-sm text-slate-500 mt-3">No route found for this option.</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">No route found for this option.</p>
                         )
                     )}
 
@@ -559,21 +567,21 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                         <>
                                             <button
                                                 onClick={() => setExpandedSeg(expandedSeg === i ? null : i)}
-                                                className="flex items-center gap-3 text-left p-3 rounded-xl bg-slate-50 border border-slate-100"
+                                                className="flex items-center gap-3 text-left p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
                                             >
-                                                <FontAwesomeIcon icon="fa-solid fa-person-walking" className="text-slate-400" />
+                                                <FontAwesomeIcon icon="fa-solid fa-person-walking" className="text-slate-400 dark:text-slate-500" />
                                                 <div className="flex-1">
                                                     <p className="text-sm font-medium">Walk {seg.minutes} min</p>
-                                                    <p className="text-xs text-slate-400">to {seg.to === "DESTINATION" ? "your destination" : seg.to}</p>
+                                                    <p className="text-xs text-slate-400 dark:text-slate-500">to {seg.to === "DESTINATION" ? "your destination" : seg.to}</p>
                                                 </div>
-                                                <FontAwesomeIcon icon={expandedSeg === i ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"} className="text-slate-300 text-xs" />
+                                                <FontAwesomeIcon icon={expandedSeg === i ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"} className="text-slate-300 dark:text-slate-600 text-xs" />
                                             </button>
                                             {expandedSeg === i && seg.steps && (
                                                 <ol className="mt-2 ml-6 flex flex-col gap-1">
                                                     {seg.steps.map((step, j) => (
-                                                        <li key={j} className="text-xs text-slate-500">
+                                                        <li key={j} className="text-xs text-slate-500 dark:text-slate-400">
                                                             {step.instruction}
-                                                            {step.distance > 0 && <span className="text-slate-300"> · {step.distance}m</span>}
+                                                            {step.distance > 0 && <span className="text-slate-300 dark:text-slate-600"> · {step.distance}m</span>}
                                                         </li>
                                                     ))}
                                                 </ol>
@@ -581,9 +589,9 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                         </>
                                     ) : (
                                         <>
-                                            <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
+                                            <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-950 border border-amber-100 dark:border-amber-900">
                                                 <FontAwesomeIcon icon="fa-solid fa-clock" className="text-amber-500" />
-                                                <p className="text-sm font-medium text-amber-800">
+                                                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
                                                     {departAt !== null
                                                         ? `Wait ${seg.waitMin} min — departs ${seg.departsAt}`
                                                         : (() => {
@@ -606,19 +614,19 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                                     <p className="text-sm font-medium">
                                                         {routeLookup[seg.mode]?.name} Route · {seg.minutes} min
                                                     </p>
-                                                    <p className="text-xs text-slate-400">
+                                                    <p className="text-xs text-slate-400 dark:text-slate-500">
                                                         {seg.stops.length - 1} stops to {seg.alightStop}
                                                     </p>
                                                 </div>
-                                                <FontAwesomeIcon icon={expandedSeg === i ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"} className="text-slate-300 text-xs" />
+                                                <FontAwesomeIcon icon={expandedSeg === i ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"} className="text-slate-300 dark:text-slate-600 text-xs" />
                                             </button>
                                             {expandedSeg === i && (
                                                 <ol className="mt-2 ml-6 flex flex-col gap-1 border-l-2 pl-4" style={{ borderColor: routeLookup[seg.mode]?.color }}>
                                                     {seg.stops.map((s, j) => (
-                                                        <li key={j} className="text-xs text-slate-500">
+                                                        <li key={j} className="text-xs text-slate-500 dark:text-slate-400">
                                                             {s.name}
-                                                            {j === 0 && <span className="text-slate-300"> · board here</span>}
-                                                            {j === seg.stops.length - 1 && <span className="text-slate-300"> · get off</span>}
+                                                            {j === 0 && <span className="text-slate-300 dark:text-slate-600"> · board here</span>}
+                                                            {j === seg.stops.length - 1 && <span className="text-slate-300 dark:text-slate-600"> · get off</span>}
                                                         </li>
                                                     ))}
                                                 </ol>

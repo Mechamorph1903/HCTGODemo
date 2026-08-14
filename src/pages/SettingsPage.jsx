@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { db } from '../data/firebase.js'
 import { collection, getDocs } from 'firebase/firestore'
+import { useAuthContext } from '../context/AuthContext.jsx'
+import { useThemeContext } from '../context/ThemeContext.jsx'
 
 export default function SettingsPage() {
   const [routes, setRoutes] = useState([])
   const [loading, setLoading] = useState(true)
-  const [favRoutes, setFavRoutes] = useState([])
-  const [darkMode, setDarkMode] = useState(false)
+  const { preference, setTheme } = useThemeContext()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const {profile, toggleFavorite } = useAuthContext()
 
   //EFFECT: pull the route list from firestore so we have something to list as favourite-able
   useEffect(() => {
@@ -29,26 +31,21 @@ export default function SettingsPage() {
     loadRoutes();
   }, []);
 
-  //toggles a route in/out of favourites, purely local state for now - not persisted to the user's profile yet
-  const toggleFav = (name) => {
-    setFavRoutes(prev =>
-      prev.includes(name) ? prev.filter(r => r !== name) : [...prev, name]
-    )
-  }
+ 
 
   if (loading) return <div className="p-6 text-slate-500">⏳ Reading profile settings...</div>;
 
   return (
-    <div className="flex flex-col h-full text-black overflow-y-auto [&::-webkit-scrollbar]:hidden">
+    <div className="flex flex-col h-full text-black overflow-y-auto [&::-webkit-scrollbar]:hidden dark:text-white dark:bg-slate-900">
       
-      {/* Profile Header - still placeholder text, needs to pull from the user's firestore profile once wired up */}
-      <div className="flex items-center gap-4 p-6 border-b border-slate-100">
-        <div className="h-14 w-14 rounded-full bg-slate-200 flex items-center justify-center text-2xl font-bold text-slate-500">
-          R
+      {/* Profile Header */}
+      <div className="flex items-center gap-4 p-6 border-b border-slate-100 dark:border-slate-800">
+        <div className="h-14 w-14 rounded-full bg-slate-200 flex items-center justify-center text-2xl font-bold text-slate-500 dark:bg-slate-700">
+          {profile.firstName[0]}{profile.lastName[0]}
         </div>
         <div>
-          <p className="font-semibold text-lg leading-tight">Rider</p>
-          <p className="text-slate-400 text-sm">rider@email.com</p>
+          <p className="font-semibold text-lg leading-tight">{profile.firstName} {profile.lastName}</p>
+          <p className=" text-sm text-slate-400  dark:text-slate-500 leading-tight">@{profile.userName}</p>
         </div>
       </div>
 
@@ -57,12 +54,12 @@ export default function SettingsPage() {
 
         {/* Favourite Routes */}
         <div>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Favourite Routes</p>
+          <p className="text-xs font-semibold text-slate-400  dark:text-slate-500 uppercase tracking-widest mb-3">Favourite Routes</p>
           <div className="flex flex-col gap-2">
             {routes.map(route => (
               <div
                 key={route.name}
-                className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50"
+                className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800"
               >
                 <div className="flex items-center gap-3">
                   <span
@@ -70,14 +67,14 @@ export default function SettingsPage() {
                     style={{ backgroundColor: route.color }}
                   />
                   <span className="font-medium text-sm">{route.name} Route</span>
-                  <span className="text-slate-400 text-xs">{route.alt}</span>
+                  <span className="text-slate-400 dark:text-slate-400 text-xs">{route.alt}</span>
                 </div>
-                <button onClick={() => toggleFav(route.name)}>
+               <button onClick={() => toggleFavorite(route.id)}>
                   <FontAwesomeIcon
-                    icon={favRoutes.includes(route.name) ? 'fa-solid fa-star' : 'fa-regular fa-star'}
-                    className={favRoutes.includes(route.name) ? 'text-yellow-400' : 'text-slate-300'}
+                      icon={profile.favoriteRoutes.includes(route.id) ? 'fa-solid fa-star' : 'fa-regular fa-star'}
+                      className={profile.favoriteRoutes.includes(route.id) ? 'text-yellow-400' : 'text-slate-300 dark:text-slate-600'}
                   />
-                </button>
+              </button>
               </div>
             ))}
           </div>
@@ -85,18 +82,21 @@ export default function SettingsPage() {
 
         {/* Preferences */}
         <div>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Preferences</p>
-          <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50">
-            <div className="flex items-center gap-3">
-              <FontAwesomeIcon icon="fa-solid fa-moon" className="text-slate-400" />
-              <span className="text-sm font-medium">Dark Mode</span>
+          <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Preferences</p>
+          <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
+            <div className="flex gap-1 bg-slate-200 dark:bg-slate-700 rounded-full p-1">
+                {['system', 'light', 'dark'].map(option => (
+                    <button
+                        key={option}
+                        onClick={() => setTheme(option)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors ${
+                            preference === option ? 'bg-white dark:bg-slate-900 shadow-sm' : 'text-slate-500'
+                        }`}
+                    >
+                        {option}
+                    </button>
+                ))}
             </div>
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className={`w-11 h-6 rounded-full transition-colors duration-200 ${darkMode ? 'bg-blue-500' : 'bg-slate-200'}`}
-            >
-              <div className={`h-5 w-5 bg-white rounded-full shadow transition-transform duration-200 mx-0.5 ${darkMode ? 'translate-x-5' : 'translate-x-0'}`} />
-            </button>
           </div>
         </div>
 

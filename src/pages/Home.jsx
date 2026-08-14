@@ -6,7 +6,8 @@ import { db } from '../data/firebase.js'
 import { collection, getDocs } from 'firebase/firestore'
 import mapboxgl from 'mapbox-gl'
 import { useLiveBuses } from '../hooks/busPositions.js'
-
+import { useAuthContext } from '../context/AuthContext.jsx'
+import { findNearestStops, scheduleAlignment } from '../utils/navigation.js'
 
 export default function Home() {
   const [routes, setRoutes] = useState([])       // Holds our 7 color lines metadata
@@ -26,6 +27,7 @@ export default function Home() {
     return "Gray"
   }
 
+  const { profile } = useAuthContext()
   const [favouriteRoutes, setFavouriteRoutes] = useState(["blue", "green"])
 
 
@@ -231,18 +233,52 @@ export default function Home() {
       })
     }
   },[activeFilter])
+
+
+
+
+  const favoriteRouteStatus = useMemo(() => {
+      if (!profile.favoriteRoutes.length || !busPositions.length || !allStops.length) return []
+
+      return profile.favoriteRoutes.map(routeId => {
+          const route = routes.find(r => r.id === routeId)
+          if (!route) return null
+
+          const routeStops = allStops
+              .filter(stop => stop.routeId === routeId)
+              .sort((a, b) => a.stopNum - b.stopNum)
+
+          const routeBuses = busPositions.filter(bus => bus.attributes.created_user.includes(route.name))
+
+          const buses = routeBuses.map(bus => {
+              const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
+
+              const nearestCandidates = findNearestStops(bus.geometry.y, bus.geometry.x, routeStops, 3)
+              const nearestStop = nearestCandidates.reduce((best, stop) => {
+                  const alignment = scheduleAlignment(route, stop, nowMin)
+                  return (!best || alignment < best.alignment) ? { stop, alignment } : best
+              }, null).stop
+
+              const nearestIndex = routeStops.findIndex(s => s.id === nearestStop.id)
+              const nextStop = routeStops[(nearestIndex + 1) % routeStops.length]
+              return { nearestStop, nextStop }
+          })
+
+          return { route, buses }
+      }).filter(Boolean)
+  }, [profile.favoriteRoutes, busPositions, allStops, routes])
  
 
 
   return (
-    <div className="flex flex-col items-center justify-center h-full text-black text-xl font-sans antialiased mx-auto shadow-xl">
+    <div className="flex flex-col items-center justify-center h-full text-black dark:text-white text-xl font-sans antialiased mx-auto shadow-xl">
       {/**HEADER SECTION  */}
-      <div className='flex justify-between items-center w-full px-6 py-4 bg-white border-b border-slate-100'>
-        <NavLink to="/Info" className="text-slate-500 hover:text-slate-800 transition-colors">
+      <div className='flex justify-between items-center w-full px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800'>
+        <NavLink to="/Info" className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
           <FontAwesomeIcon icon="fa-solid fa-circle-info" className="text-xl" />
         </NavLink>
-        <span className="font-bold text-lg tracking-tight text-slate-800">HCTGo</span>
-        <NavLink to="/Alerts" className="text-slate-500 hover:text-slate-800 transition-colors relative">
+        <span className="font-bold text-lg tracking-tight text-slate-800 dark:text-slate-100">HCTGo</span>
+        <NavLink to="/Alerts" className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors relative">
           <FontAwesomeIcon icon="fa-solid fa-bell" className="text-xl" />
           <span className="absolute -top-1 -right-1 flex h-2 w-2 rounded-full bg-blue-500"></span>
         </NavLink>
@@ -254,13 +290,13 @@ export default function Home() {
 
 
       {/*TOP MAP FILTERS: Route Sort Selector Row */}
-      <div className="flex items-center gap-2 overflow-x-auto w-100 px-5 py-2.5 bg-white border-b border-slate-100 shrink-0 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto w-100 px-5 py-2.5 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shrink-0 scrollbar-none">
         <button
           onClick={() => setActiveFilter(null)}
           className={`px-3 py-1.5 text-xs font-bold rounded-full border transition-all whitespace-nowrap active:scale-95 ${
-            activeFilter === null 
-              ? 'bg-slate-900 border-slate-900 text-white shadow-sm' 
-              : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+            activeFilter === null
+              ? 'bg-slate-900 border-slate-900 text-white shadow-sm dark:bg-white dark:border-white dark:text-slate-900'
+              : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700'
           }`}
         >
           All Routes
@@ -271,9 +307,9 @@ export default function Home() {
             key={route.name}
             onClick={() => setActiveFilter(route.name)}
             className={`px-3 py-1.5 text-xs font-bold rounded-full border flex items-center gap-1.5 transition-all whitespace-nowrap active:scale-95 ${
-              activeFilter === route.name 
-                ? 'border-transparent text-white shadow-sm' 
-                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+              activeFilter === route.name
+                ? 'border-transparent text-white shadow-sm'
+                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700'
             }`}
             style={activeFilter === route.name ? { backgroundColor: route.color } : {}}
           >
@@ -288,20 +324,29 @@ export default function Home() {
 
 
       {/*GENERAL MAP */}
-      <div id="Map" ref={mapContainer} className='h-128 w-110 overflow-hidden rounded-xl' />
-          
-            
+      <div id="Map" ref={mapContainer} className='h-128 w-full overflow-hidden rounded-xl mt-3' />
 
       {/*FAVOURITE ROUTES SECTION*/}
-      <div>
-        <h1>Favourite Routes</h1>
-
-        {
-          favouriteRoutes.map((route, index) => {
-            
-          })
-        }
-      </div>
+      <div className="w-full px-5 py-4">
+        <h1 className="font-bold text-lg mb-2">Favourite Routes</h1>
+        {favoriteRouteStatus.map(({ route, buses }) => (
+            <div key={route.id} className="flex flex-col p-3 border border-slate-100 dark:border-slate-800 rounded-xl mb-2">
+                <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: route.color }} />
+                    <span className="font-medium text-sm">{route.name}</span>
+                </div>
+                {buses.length ? (
+                    buses.map((b, i) => (
+                        <p key={i} className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Near {b.nearestStop.name} → next {b.nextStop.name}
+                        </p>
+                    ))
+                ) : (
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">No live bus data</p>
+                )}
+            </div>
+        ))}
+    </div>
     </div>
   )
 }

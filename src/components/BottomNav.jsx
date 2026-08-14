@@ -18,18 +18,18 @@ const tabs = [
 
 export default function BottomNav() {
   return (
-    <nav className="flex justify-around items-center h-16 bg-zinc-200">
+    <nav className="flex justify-around items-center h-16 bg-zinc-200 dark:bg-slate-800">
       {/* Map to apply formatting to alll items in the array, makes a navlink for each icon */}
       {tabs.map(tab => (
         <NavLink
         // to: is where we navigate to think of it as the href for the a tag
-        // key: 
+        // key:
           key={tab.to}
           to={tab.to}
           end
           className={({ isActive }) =>
             `flex flex-col items-center gap-1 text-xs transition-colors ${
-              isActive ? 'text-blue-400' : 'text-zinc-500'
+              isActive ? 'text-blue-400' : 'text-zinc-500 dark:text-slate-400'
             }`
           }
         >

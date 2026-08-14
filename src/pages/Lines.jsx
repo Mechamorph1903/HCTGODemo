@@ -29,10 +29,10 @@ export default function Lines() {
     fetchRoutes();
   }, []);
 
-  if (loading) return <div className="p-5 text-slate-500">⏳ Loading active lines...</div>;
+  if (loading) return <div className="p-5 text-slate-500 dark:text-slate-400">⏳ Loading active lines...</div>;
 
   return (
-    <div className="grid grid-columns-3 grid-rows-9 h-full text-black text-xl p-5 py-2">
+    <div className="grid grid-columns-3 grid-rows-9 h-full text-black dark:text-white text-xl p-5 py-2">
       {/* //finna grid this */}
       <h1 className="col-span-2">Bus Routes</h1>
       <div className="justify-self-end">
