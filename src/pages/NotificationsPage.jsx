@@ -1,59 +1,50 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import AlertPill from "../components/AlertPill"
-
-//hardcoded alerts for now, swap this out later
-const initialAlerts = [
-  {
-    subject: "Summer in the Hub City! ☀️",
-    message: "Three months of summer heat means endless things to do in Hattiesburg! Catch a ride with HCT to explore the city and beat the heat.",
-    priority: "medium",
-    buses: ["Blue", "Green", "Gold", "Purple", "Red", "Orange", "Brown"]
-  },
-  {
-    subject: "Route Delay: Gold Line 🚧",
-    message: "Due to unexpected construction on Hardy St, the Gold Line is experiencing 10-15 minute delays. Thank you for your patience!",
-    priority: "high",
-    buses: ["Gold"]
-  },
-  {
-    subject: "4th of July Holiday Schedule 🎆",
-    message: "Reminder: HCT will run on a modified holiday schedule this Thursday. Check the updated transit timetables in the app before you head out.",
-    priority: "medium",
-    buses: ["Blue", "Green", "Gold", "Purple", "Red", "Orange", "Brown"]
-  },
-  {
-    subject: "Inclement Weather Warning ⛈️",
-    message: "Heavy rain and local flooding may cause minor delays across all routes this afternoon. Please plan ahead and stay safe!",
-    priority: "high",
-    buses: ["Blue", "Green", "Gold", "Purple", "Red", "Orange", "Brown"]
-  },
-  {
-    subject: "Commuter Tip: Track in Real-Time 📲",
-    message: "Never miss your ride. Tap any route color on the home page to see exactly where your bus is on the map right now.",
-    priority: "low",
-    buses: ["Blue", "Green", "Gold", "Purple", "Red", "Orange", "Brown"]
-  }
-]
+import { db } from "../data/firebase.js"
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore"
 
 export default function NotificationsPage() {
-  const [alerts] = useState(initialAlerts)
+  const [alerts, setAlerts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  //EFFECT: live-subscribe to the alerts collection (newest first) so new alerts show up without a refresh
+  useEffect(() => {
+    const alertsQuery = query(collection(db, "alerts"), orderBy("createdAt", "desc"))
+
+    const unsubscribe = onSnapshot(alertsQuery, (snapshot) => {
+      const cloudAlerts = []
+      snapshot.forEach((doc) => {
+        cloudAlerts.push({ id: doc.id, ...doc.data() })
+      })
+      setAlerts(cloudAlerts)
+      setLoading(false)
+    }, (error) => {
+      console.error("Error listening to alerts: ", error)
+      setLoading(false)
+    })
+
+    return () => unsubscribe()
+  }, [])
+
+  if (loading) return <div className="p-6 text-slate-500 dark:text-slate-400">⏳ Checking for alerts...</div>;
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-black dark:text-white text-xl gap-4">
       <h1 className="text-2xl font-bold">Alerts</h1>
       <div className="p-4 flex flex-col gap-3">
-        {/*one pill per alert, fall back to a message if the list is ever empty*/}
-        {alerts ? alerts.map((alert, index) => (
+        {alerts.length > 0 ? alerts.map((alert) => (
           <AlertPill
-            key={index}
+            key={alert.id}
             subject={alert.subject}
             message={alert.message}
             priority={alert.priority}
             buses={alert.buses}
           />
-        )) : "No New Alerts"}
+        )) : (
+          <p className="text-sm text-slate-400 dark:text-slate-500">No new alerts right now.</p>
+        )}
       </div>
     </div>
-  
+
   )
 }
