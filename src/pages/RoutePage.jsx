@@ -4,6 +4,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import getRouteCentroid, { webMercatorToLatLng } from "../utils/coords.js"
 import scheduleGenerator, { minutesToClockString, getNextArrivalStatus } from '../utils/schedule.js'
 import { useLiveBuses } from '../hooks/busPositions.js'
+import { buildLineCoords } from '../utils/navigation.js'
 import { useEffect, useRef, useState } from 'react'
 import { db } from '../data/firebase.js'
 import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore'
@@ -77,7 +78,7 @@ export default function RoutePage({route}){
             map.current.fitBounds([[minlng, minlat], [maxlng, maxlat]], { padding: 40 })
             
             const stops =  routeStops.sort((a,b) => a.stopNum - b.stopNum)
-            const lineCoords = stops.map(stop => [stop.coords[1], stop.coords[0]])
+            const lineCoords = buildLineCoords(currRoute, stops)
             if (stops.length > 1) lineCoords.push(lineCoords[0]) //wrapback to initial
 
             //Line
@@ -217,7 +218,7 @@ export default function RoutePage({route}){
                             )}
                         </div>
                     )}
-                    <div className='pl-5 rounded-sm' style={{ borderLeft: `4px solid ${currRoute.color}` }}>
+                    <div className='pl-5 rounded-sm mb-5' style={{ borderLeft: `4px solid ${currRoute.color}` }}>
                         <h1 className='text-2xl'>{currRoute.name} Route {currRoute.alt}</h1>
                         {/*This is where we put the lil info about the route and the times i.e use this route to get through bla bla bla*/}
                         <p className='p-4'>{currRoute.info}</p>

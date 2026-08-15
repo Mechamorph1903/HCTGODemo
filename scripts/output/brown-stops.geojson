@@ -1,0 +1,453 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Train Depot",
+        "stopNum": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28567982673566,
+          31.32778943983341
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Briarfield Apt and E 2nd",
+        "stopNum": 2
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.2874907220126,
+          31.33069449464635
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Coit st and Hwy 42",
+        "stopNum": 11
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29438978339559,
+          31.34290181656627
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "US Hwy 42 and Redus St",
+        "stopNum": 12
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3013337605428,
+          31.342525876171237
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "US Hwy 42 and Glendale Ave",
+        "stopNum": 13
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.30735247294724,
+          31.34260259882285
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "US Hwy 42 and Pritchard St",
+        "stopNum": 14
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31497018655763,
+          31.34646933941744
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "US Hwy 42 and Cahal St",
+        "stopNum": 15
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32448334541779,
+          31.346799232545848
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "US Hwy 42 at Health Dept.",
+        "stopNum": 16
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33153512039911,
+          31.34735928102144
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Service Dr and N 31st Ave",
+        "stopNum": 17
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3351104152304,
+          31.348448680832846
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "N 31st and Hwy 49",
+        "stopNum": 18
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33531702774577,
+          31.347689171028634
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Campbell Dr at Mark Apartment",
+        "stopNum": 19
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33764366433196,
+          31.346776216783738
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Campbell Dr and Overlook Apartments",
+        "stopNum": 20
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.34322220224712,
+          31.346753201015986
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "E 2nd St and Mobile St",
+        "stopNum": 3
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.2899251564329,
+          31.330019247719747
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Beverly Hills Dr and Plantation Apartments",
+        "stopNum": 21
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.34839649828439,
+          31.345633093512987
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Beverly Hills and 37th",
+        "stopNum": 22
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.34399475339158,
+          31.33957967901769
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W 7th St and N 31st Ave",
+        "stopNum": 23
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33555058971967,
+          31.335658945464417
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W 7th St and Service Dr (Hillcrest Lot)",
+        "stopNum": 24
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32957679307945,
+          31.33559756281842
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W 7th St and 25th Ave",
+        "stopNum": 25
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32786999403939,
+          31.335643599806673
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W 7th St and 19th St",
+        "stopNum": 26
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31958752711866,
+          31.33568963677243
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W 7th St and Oliver Av",
+        "stopNum": 27
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31368559570117,
+          31.33570498242267
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W 7th St and North St",
+        "stopNum": 28
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.30587923588108,
+          31.33570498242267
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W 7th St and Main St",
+        "stopNum": 29
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.2992586522362,
+          31.335651272635857
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Main St and 4th St",
+        "stopNum": 30
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29675235259316,
+          31.33216774385295
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Mobile St and E 4th St",
+        "stopNum": 4
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.2899251564329,
+          31.332037300843297
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Main St and Eaton St",
+        "stopNum": 31
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29183856798834,
+          31.327816988285534
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Main St and Short St",
+        "stopNum": 32
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28922447051119,
+          31.325967664432426
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Mobile St and E 7th St",
+        "stopNum": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28995210589143,
+          31.33568963677243
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "E 7th St and Fairley St",
+        "stopNum": 6
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28441848374048,
+          31.335635926976863
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "E 9th St and Bouie St",
+        "stopNum": 7
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28720326112163,
+          31.338451813501052
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "E 9th St and Mobile St",
+        "stopNum": 8
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28989820697437,
+          31.338283016138178
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "E 9th St and Memphis",
+        "stopNum": 9
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29237755715889,
+          31.338290688752167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Coit St and Lula",
+        "stopNum": 10
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29434486763138,
+          31.340592444695446
+        ]
+      }
+    }
+  ]
+}

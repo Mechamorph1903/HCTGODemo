@@ -1,0 +1,691 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Train Depot",
+        "stopNum": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28567982673566,
+          31.32778943983341
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Main St and W Front",
+        "stopNum": 2
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28950294824931,
+          31.326397386078284
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and USM Rose Garden",
+        "stopNum": 11
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33120274374394,
+          31.32487800432277
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 31st Ave (JR Gas Station)",
+        "stopNum": 12
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33584703376349,
+          31.324901025441406
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and Ross St (34th)",
+        "stopNum": 13
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33946724435899,
+          31.32495474136303
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 36th Ave",
+        "stopNum": 14
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.34311440441301,
+          31.325039152035075
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 38th Ave",
+        "stopNum": 15
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3454590073049,
+          31.32508519418795
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 40th Ave",
+        "stopNum": 16
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.34757903137572,
+          31.325115888943998
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and Coco Cola Ave",
+        "stopNum": 17
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.35920323115384,
+          31.324379212036376
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St (Across from McDonald's)",
+        "stopNum": 18
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.36347921190684,
+          31.32370391980713
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Wesley (Green Eye Institute)",
+        "stopNum": 19
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3660304273141,
+          31.32441758076763
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Wesley (Front Entrance)",
+        "stopNum": 20
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.36663229855453,
+          31.325576309083942
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Main St and New Orleans St (Federal Building)",
+        "stopNum": 3
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29192839951676,
+          31.328024171682273
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Wesley (Millsaps Dr)",
+        "stopNum": 21
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3677012937428,
+          31.323972502523915
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Turtle Creek Mall (Between Dillards and Pier 1 imports)",
+        "stopNum": 22
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.37435780999904,
+          31.324402233277013
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Turtle Creek Mall (Between Dick's and Dillards)",
+        "stopNum": 23
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.37577714814816,
+          31.323419988673407
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Turtle Creek Mall (In front of Rio Grande)",
+        "stopNum": 24
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.37804988581729,
+          31.32739494662232
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Cross Creek Parkway (Across Bed Bath and Beyond)",
+        "stopNum": 25
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.38135568606332,
+          31.323627181747327
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Walmart @ 98",
+        "stopNum": 26
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.37926261145103,
+          31.320511563699426
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St (Lowes)",
+        "stopNum": 27
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.37514832744918,
+          31.321992646218632
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St (TJ Max)",
+        "stopNum": 28
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.37153710000652,
+          31.322276581656865
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St (Shell Gas station)",
+        "stopNum": 29
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.36671314693012,
+          31.32272934180054
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St (McDonald's)",
+        "stopNum": 30
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3631109026403,
+          31.32322814282803
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "On McLeod St (By FireStation No.1)",
+        "stopNum": 4
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.2937340132381,
+          31.327993477874514
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St on Service Rd (Best Buy)",
+        "stopNum": 31
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.35785575822747,
+          31.323036296591738
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Georgia Blue",
+        "stopNum": 32
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.35586149829645,
+          31.323289533541086
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St at Midtown Market Shopping Center",
+        "stopNum": 33
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3445067931036,
+          31.324831962068586
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 34th Ave",
+        "stopNum": 34
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.34051827324156,
+          31.32473987749266
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 30th Ave",
+        "stopNum": 35
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3341605261007,
+          31.324716157744017
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 29th Ave",
+        "stopNum": 36
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33214123535582,
+          31.323931537843663
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "28th Ave @ Pine Grove Health Center",
+        "stopNum": 37
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33070104516723,
+          31.321470964409237
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "28th Ave and Hardy",
+        "stopNum": 38
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33094758340972,
+          31.324625099065173
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 25th Ave (Return)",
+        "stopNum": 39
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32762678911607,
+          31.324699049421078
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy and 21st Ave",
+        "stopNum": 40
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32287536105899,
+          31.324601750459905
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "On Hardy St (Main Library)",
+        "stopNum": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29694099880285,
+          31.324908699146377
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and Park Ave (Shelter)",
+        "stopNum": 41
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31797055960702,
+          31.3246247716461
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy and 17th Ave. (Zoo)",
+        "stopNum": 42
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31467374251385,
+          31.324617097918008
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and Hutchinson Ave. (Return)",
+        "stopNum": 43
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3095443622408,
+          31.32464779282668
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and Pinehurst St",
+        "stopNum": 44
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.30365141397616,
+          31.324655466552272
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and Mamie St",
+        "stopNum": 45
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29994137185223,
+          31.324701508892787
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 1st Ave",
+        "stopNum": 46
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29569234055775,
+          31.324709182614015
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Front St and Forrest St.",
+        "stopNum": 47
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29076957280009,
+          31.325476551578035
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Main St and Short St",
+        "stopNum": 48
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28922447051119,
+          31.325967664432426
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Buschman St and River Av",
+        "stopNum": 49
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.2856491756799,
+          31.326374365325563
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and Hutchinson Ave.",
+        "stopNum": 6
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.30993063781303,
+          31.324847309489158
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy and 17th Ave. (Across Zoo)",
+        "stopNum": 7
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31440424792856,
+          31.324847309489158
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and Park Ave.",
+        "stopNum": 8
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31774598078596,
+          31.324847309489158
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 20th Ave",
+        "stopNum": 9
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32269569800214,
+          31.324854983198506
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 25th Ave",
+        "stopNum": 10
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32740988451265,
+          31.324904476604402
+        ]
+      }
+    }
+  ]
+}

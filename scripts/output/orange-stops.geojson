@@ -1,0 +1,453 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Train Depot",
+        "stopNum": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28567982673566,
+          31.32778943983341
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "River Ave and Williams St",
+        "stopNum": 2
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28437356797627,
+          31.32517727842611
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Cypress St and Penton St",
+        "stopNum": 11
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29406638989326,
+          31.31012798396182
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Wills Av and John St",
+        "stopNum": 12
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29463232852234,
+          31.31278346511114
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Katie St and Charles St",
+        "stopNum": 13
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29535098074973,
+          31.31569980323293
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hall St and Dabbs St",
+        "stopNum": 14
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29309620938628,
+          31.317426539818655
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "6th Av and W Pine St",
+        "stopNum": 15
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29930356800041,
+          31.318923019249183
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Broadway Dr and Corinne St",
+        "stopNum": 16
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.30376819496311,
+          31.316728174612606
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Broadway Dr and Timothy Ln",
+        "stopNum": 17
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.30920300243278,
+          31.314042106324507
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bartur St and Broadway St",
+        "stopNum": 18
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31311067391925,
+          31.31141735988153
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Service Rd at Cloverleaf Center - South side",
+        "stopNum": 19
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31533849582418,
+          31.309199315371785
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Service Rd at Cloverleaf Center - SW side",
+        "stopNum": 20
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31799750906553,
+          31.31005123483861
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Mc Innis and Tipton",
+        "stopNum": 3
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28016046929316,
+          31.32407993539607
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Cloverleaf Mall",
+        "stopNum": 21
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31839276779061,
+          31.31148643309345
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Walmart @ 49",
+        "stopNum": 22
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31941144357341,
+          31.308037091501312
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Roosevelt Blvd Before Lincoln Rd",
+        "stopNum": 23
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3222645066657,
+          31.304954953134697
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Lincoln Rd and Hill St (Central Sunbelt Bank)",
+        "stopNum": 24
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31806937428829,
+          31.30407228597612
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Service Dr and W Pine St",
+        "stopNum": 25
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31318253914199,
+          31.30559200342435
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W Pine St by Health Dept",
+        "stopNum": 26
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.308107057786,
+          31.311171765828973
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Timothy Ln and Broadway",
+        "stopNum": 27
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.30900537307026,
+          31.313888614394145
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Broadway Dr and Florence Ave",
+        "stopNum": 28
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.30563669075433,
+          31.316052827509637
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Halls St and W Pine St",
+        "stopNum": 29
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29941136583452,
+          31.318823254693697
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W Pine St and 1st Ave",
+        "stopNum": 30
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29400350782338,
+          31.323519748358493
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Tipton St and Rebecca St",
+        "stopNum": 4
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28014250298747,
+          31.319206963943984
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Front St and Forrest St.",
+        "stopNum": 31
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29076957280009,
+          31.325476551578035
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Main St and Short St",
+        "stopNum": 32
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28922447051119,
+          31.325967664432426
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Tipton St and Alcorn St",
+        "stopNum": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28008860407041,
+          31.315830268880674
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "James St and Alcorn St",
+        "stopNum": 6
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.2829811792857,
+          31.315784222202083
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St and Katie St",
+        "stopNum": 7
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28519103488493,
+          31.315761198854375
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St and Duke Ave",
+        "stopNum": 8
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28514611912071,
+          31.311939245117046
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St and Tuscan Ave",
+        "stopNum": 9
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28514611912071,
+          31.30630580164373
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "William Carey Pkwy and Tuscan Ave",
+        "stopNum": 10
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29403045728189,
+          31.306359528172564
+        ]
+      }
+    }
+  ]
+}

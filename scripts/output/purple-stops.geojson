@@ -1,0 +1,509 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Train Depot",
+        "stopNum": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28567982673566,
+          31.32778943983341
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Main St and Buschman St",
+        "stopNum": 2
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28733800841427,
+          31.32437153828826
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St and Barkley Rd",
+        "stopNum": 11
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28573002405548,
+          31.28818286324315
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St and Central School Rd",
+        "stopNum": 12
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28835310468547,
+          31.28088971937322
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Old Airport Rd and Edwards St",
+        "stopNum": 13
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28874836341055,
+          31.27734274449351
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Old Airport Rd at Family Health Center",
+        "stopNum": 14
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28299016243854,
+          31.277350422072402
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Old Airport Rd and Chancellor Rd",
+        "stopNum": 15
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.27575872440036,
+          31.277319711753194
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Old Airport Rd and Hattiesburg Ave",
+        "stopNum": 16
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.27161749093999,
+          31.27727364625568
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sullivan St at Palmer's Crossing Apartments",
+        "stopNum": 17
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.2669193020034,
+          31.276429108147042
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Tatum Rd and Hood Rd",
+        "stopNum": 18
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.2628140011544,
+          31.27817959691076
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Tatum Rd and Steps Ave",
+        "stopNum": 19
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.25882548129236,
+          31.279239087484925
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Travillion Rd and Steps Ave",
+        "stopNum": 20
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.25617545120383,
+          31.276014513944617
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bay St and Rebecca Av",
+        "stopNum": 3
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28637681106014,
+          31.319068828794016
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "JM Tatum Industrial Dr at Georgia Pacific",
+        "stopNum": 21
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.26551793015997,
+          31.269088985793815
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "JM Tatum Industrial Dr at Kohler",
+        "stopNum": 22
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.26976696145445,
+          31.266931372607345
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Lowery A Woodall Tech Center",
+        "stopNum": 23
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.27311767746468,
+          31.261947942200393
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Southhill Dr and Sullivan Dr",
+        "stopNum": 24
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.27774400117855,
+          31.266378524277414
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "JM Tatum Industrial Dr at DMV",
+        "stopNum": 25
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.2815438748309,
+          31.266616556594343
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "PRCC",
+        "stopNum": 26
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29695896510853,
+          31.28594891805281
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St past Central School Rd",
+        "stopNum": 27
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28805666064167,
+          31.281012555940165
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St and Barkley Rd (return)",
+        "stopNum": 28
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28471492778428,
+          31.28839013382479
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "McCall St and Collins Rd",
+        "stopNum": 29
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28417593861373,
+          31.292051838961854
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "McCall St and Dixie Pine Rd",
+        "stopNum": 30
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28414898915521,
+          31.295536851781804
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Katie St and Arnold St",
+        "stopNum": 4
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29014973525396,
+          31.31567677986456
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Lilac St and Hattiesburg St (return)",
+        "stopNum": 31
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28274761731178,
+          31.301178614782245
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Tuscan St and Edwards St",
+        "stopNum": 32
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28498442236956,
+          31.306121596169376
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St and Duke Ave (return)",
+        "stopNum": 33
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.2849934055224,
+          31.311946919878338
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St and Katie St (return)",
+        "stopNum": 34
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28502933813377,
+          31.315761198854375
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bay St and Rebecca Av (return)",
+        "stopNum": 35
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28630494583739,
+          31.319076502974312
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Main St and Buschman St (return)",
+        "stopNum": 36
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28721224427449,
+          31.324486644444463
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St and Katie St",
+        "stopNum": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28519103488493,
+          31.315761198854375
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St and Duke Ave",
+        "stopNum": 6
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28514611912071,
+          31.311939245117046
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St and Tuscan Ave",
+        "stopNum": 7
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28514611912071,
+          31.30630580164373
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Lilac St and Hattiesburg St",
+        "stopNum": 8
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28283744884021,
+          31.301186290420233
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St and Dixie Pine Rd",
+        "stopNum": 9
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28633189529593,
+          31.29643495094342
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Edwards St and Fellowship Center",
+        "stopNum": 10
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.28685291816079,
+          31.293203289168787
+        ]
+      }
+    }
+  ]
+}

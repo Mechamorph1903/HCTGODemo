@@ -512,3 +512,15 @@ export const scheduleAlignment = (route, stop, nowMin) => {
     const prevDeparture = nextDeparture - headway
     return Math.min(Math.abs(nextDeparture - nowMin), Math.abs(prevDeparture - nowMin))
 }
+
+export const buildLineCoords = (route, routeStops) => {
+    // prefer the hand-traced shape once it exists
+    if (route.shapePoints?.length) {
+        return route.shapePoints.map(p => [p.lng, p.lat])
+    }
+    // fallback: straight lines through stops, manually closed —
+    // only hit if a route somehow has no shapePoints yet
+    const coords = routeStops.map(stop => [stop.coords[1], stop.coords[0]])
+    if (routeStops.length > 1) coords.push(coords[0])
+    return coords
+}

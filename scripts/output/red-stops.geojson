@@ -1,0 +1,411 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Walmart @ 49",
+        "stopNum": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31941144357341,
+          31.308037091501312
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "On Service Rd near Cspire",
+        "stopNum": 2
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31995583638519,
+          31.31095687050771
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "McInnis Loop at Greenbriar Apts",
+        "stopNum": 11
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32848084843268,
+          31.299090818046068
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "McInnis Loop near Disability office",
+        "stopNum": 12
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32411503615124,
+          31.299106169661457
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Right before McInnis Loop and Country Club Rd",
+        "stopNum": 13
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31692851387729,
+          31.298108309459053
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Country Club Rd at Bonhomie Apartments",
+        "stopNum": 14
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31426950063593,
+          31.30221482025067
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Country Club Rd at Pineview Apartments",
+        "stopNum": 15
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31106251507117,
+          31.30434860006271
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Country Club Rd at the park",
+        "stopNum": 16
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.30761298437967,
+          31.307326600452484
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Country Club Rd and Killingsworth Dr",
+        "stopNum": 17
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.30437904935638,
+          31.310135658870692
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Dumas Av and Martin Luther King Av",
+        "stopNum": 18
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29955509628,
+          31.311732026325544
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Martin Luther king Av and Tuscan Av",
+        "stopNum": 19
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29958204573853,
+          31.306413254670787
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "William Carey Pkwy and Tuscan Ave",
+        "stopNum": 20
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29416520457453,
+          31.306206023723163
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Service Rd at Cloverleaf Center - SW side (popeye's-in prog)",
+        "stopNum": 3
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31816818896955,
+          31.30932979002398
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "William Carey Pkwy at Wisteria Apartments Entrance 1",
+        "stopNum": 21
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.29482995788487,
+          31.300219155114576
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "William Carey Pkwy at Wisteria Apartments Entrance 3",
+        "stopNum": 22
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.2963391275624,
+          31.29942087722597
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "William Carey Pkwy and Dosset St",
+        "stopNum": 23
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.30153138990534,
+          31.29925968567788
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "William Carey Pkwy at JR (Just before entering HWY 49)",
+        "stopNum": 24
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.30769383275526,
+          31.299228982494597
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Service Dr and Fred's Pharmacy",
+        "stopNum": 25
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31461984359679,
+          31.306712587457042
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Service Dr and Carriage Inn",
+        "stopNum": 26
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3135867810199,
+          31.309621438593112
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Service Rd at Cloverleaf Center - South side",
+        "stopNum": 27
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31533849582418,
+          31.309199315371785
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Service Rd at Cloverleaf Center - SW side\n",
+        "stopNum": 28
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31799750906553,
+          31.31005123483861
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Cloverleaf Mall",
+        "stopNum": 29
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31839276779061,
+          31.31148643309345
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bartur St and Broadway St",
+        "stopNum": 4
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31312864022493,
+          31.311302237749132
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "S 17th St and Service Rd",
+        "stopNum": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31355983156138,
+          31.3097979622884
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Service Dr and W Pine St",
+        "stopNum": 6
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3136496630898,
+          31.30534639418434
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Lincoln Rd and Hill St (Central Sunbelt Bank)",
+        "stopNum": 7
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3179256438428,
+          31.304210443120695
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Lincoln Rd and Roosevelt Blvd (dollar general)",
+        "stopNum": 8
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32306400726867,
+          31.30422579390205
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "28th Ave at Winn Dixie",
+        "stopNum": 9
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33129257527236,
+          31.3033738217553
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "28th Ave and McInnis Loop",
+        "stopNum": 10
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33082545132456,
+          31.299090818046068
+        ]
+      }
+    }
+  ]
+}

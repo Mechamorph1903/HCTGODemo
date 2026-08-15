@@ -7,7 +7,7 @@ import { collection, getDocs } from 'firebase/firestore'
 import mapboxgl from 'mapbox-gl'
 import { useLiveBuses } from '../hooks/busPositions.js'
 import { useAuthContext } from '../context/AuthContext.jsx'
-import { findNearestStops, scheduleAlignment } from '../utils/navigation.js'
+import { findNearestStops, scheduleAlignment, buildLineCoords } from '../utils/navigation.js'
 
 export default function Home() {
   const [routes, setRoutes] = useState([])       // Holds our 7 color lines metadata
@@ -94,8 +94,7 @@ export default function Home() {
           .filter(stop => stop.routeId === route.id)
           .sort((a, b) => a.stopNum - b.stopNum)
 
-        const lineCoords = routeStops.map(stop => [stop.coords[1], stop.coords[0]])
-        if (routeStops.length > 1) lineCoords.push(lineCoords[0])
+        const lineCoords = buildLineCoords(route, routeStops)
          
         if(!map.current.getSource(`route-${route.id}`)){
           map.current.addSource(`route-${route.id}`, {

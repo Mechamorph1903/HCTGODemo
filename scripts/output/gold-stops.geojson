@@ -1,0 +1,201 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W 7th St and Service Dr (Hillcrest Lot)",
+        "stopNum": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32957679307945,
+          31.33559756281842
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hillcrest Hall",
+        "stopNum": 2
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32936978406738,
+          31.33364514342889
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Montague Blvd @ DuBard School",
+        "stopNum": 11
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33829045133662,
+          31.328377149752427
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Golden Eagle Ave @ Montague Blvd",
+        "stopNum": 12
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33485888695081,
+          31.328331109209643
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Golden Eagle Ave @ Charles Lane Dr",
+        "stopNum": 13
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33472413965816,
+          31.32945909602502
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "4th Street @ Moffet Health Center",
+        "stopNum": 14
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33294547539538,
+          31.331906857652896
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Stadium Ave @ Athletic Center",
+        "stopNum": 3
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33063680511486,
+          31.33047197062615
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Eagle Walk and College Dr",
+        "stopNum": 4
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33062782196201,
+          31.327978130966855
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Southern Miss Dr and W Memorial Dr",
+        "stopNum": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33300835746526,
+          31.32588325459288
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W Memorial Dr @ Hardy St",
+        "stopNum": 6
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33295445854822,
+          31.32495474136303
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 31st Ave (JR Gas Station)",
+        "stopNum": 7
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33584703376349,
+          31.324901025441406
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "North 31st @ Pearl St",
+        "stopNum": 8
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3359368652919,
+          31.326650613986757
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pearl St @ N 34th Ave",
+        "stopNum": 9
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3407608183683,
+          31.32682710576256
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "N 35th Ave @ Montague Blvd",
+        "stopNum": 10
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.34196456084918,
+          31.328415516854207
+        ]
+      }
+    }
+  ]
+}

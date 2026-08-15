@@ -1,0 +1,257 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Walmart @ 49",
+        "stopNum": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.31941144357341,
+          31.308037091501312
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Washington St and Live Well Center",
+        "stopNum": 2
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3207194043768,
+          31.309506314265818
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Montague Blvd and 40th Ave",
+        "stopNum": 11
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.348019205865,
+          31.328446210524376
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pearl St and 38th Ave",
+        "stopNum": 12
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3456296872089,
+          31.326926861837293
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St at Midtown Market Shopping Center",
+        "stopNum": 13
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3445067931036,
+          31.324831962068586
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 34th Ave",
+        "stopNum": 14
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.34051827324156,
+          31.32473987749266
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 30th Ave",
+        "stopNum": 15
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33443667876722,
+          31.324663140277252
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hardy St and 29th Ave",
+        "stopNum": 16
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33262208189304,
+          31.323811352985786
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Midtown stop 28th st",
+        "stopNum": 17
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33097816492288,
+          31.32100270245347
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Mamie St at Forrest General Hospital",
+        "stopNum": 18
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3296919607634,
+          31.31927359842183
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "N 26th Ave and Quinn St",
+        "stopNum": 3
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3286964441009,
+          31.32744098762298
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W 7th St and Service Dr (Hillcrest Lot)",
+        "stopNum": 4
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32957679307945,
+          31.33559756281842
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hillcrest Hall",
+        "stopNum": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.32936978406738,
+          31.33364514342889
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "4th St and Eagle Walk",
+        "stopNum": 6
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33051104097507,
+          31.332083339573245
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W 4th St and USM Coliseum",
+        "stopNum": 7
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.33771552955471,
+          31.332305859783744
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "W 4th St and Virginia Dr",
+        "stopNum": 8
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3438501271963,
+          31.334829891415204
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "ThornHill Dr @ Mark IV",
+        "stopNum": 9
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.34924989780441,
+          31.3347765660788
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Grand Theatre",
+        "stopNum": 10
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.35077703378762,
+          31.330487317127208
+        ]
+      }
+    }
+  ]
+}
