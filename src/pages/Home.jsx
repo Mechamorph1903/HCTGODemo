@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { db } from '../data/firebase.js'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, getDocs, query, orderBy, limit, onSnapshot } from 'firebase/firestore'
 import mapboxgl from 'mapbox-gl'
 import { useLiveBuses } from '../hooks/busPositions.js'
 import { useAuthContext } from '../context/AuthContext.jsx'
@@ -13,6 +13,7 @@ export default function Home() {
   const [routes, setRoutes] = useState([])       // Holds our 7 color lines metadata
   const [allStops, setAllStops] = useState([])   // Holds all stops globally for mapping
   const [activeFilter, setActiveFilter] = useState(null)
+  const [hasNewAlerts, setHasNewAlerts] = useState(false)
   //mapbox refs
   const mapContainer = useRef(null) // points at the div
   const map = useRef(null) // stores the mapbox instance
@@ -31,6 +32,23 @@ export default function Home() {
   const [favouriteRoutes, setFavouriteRoutes] = useState(["blue", "green"])
 
 
+
+  useEffect(() => {
+    const alertsQuery = query(collection(db, "alerts"), orderBy("createdAt", "desc"), limit(1))
+    const unsubscribe = onSnapshot(alertsQuery, (snapshot) => {
+      if (snapshot.empty) { setHasNewAlerts(false); return }
+      const latest = snapshot.docs[0].data()
+      const latestMs = latest.createdAt?.toMillis?.() ?? 0
+      const lastSeen = localStorage.getItem('lastSeenAlertsAt')
+      setHasNewAlerts(latestMs > Number(lastSeen || 0))
+    })
+    return () => unsubscribe()
+  }, [])
+
+  const openAlerts = () => {
+    localStorage.setItem('lastSeenAlertsAt', String(Date.now()))
+    setHasNewAlerts(false)
+  }
 
   //EFFECT 1: Fetch Routes and Stops from Cloud Firestore on Boot
   useEffect(() => {
@@ -277,9 +295,9 @@ export default function Home() {
           <FontAwesomeIcon icon="fa-solid fa-circle-info" className="text-xl" />
         </NavLink>
         <span className="font-bold text-lg tracking-tight text-slate-800 dark:text-slate-100">HCTGo</span>
-        <NavLink to="/Alerts" className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors relative">
+        <NavLink to="/Alerts" onClick={openAlerts} className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors relative">
           <FontAwesomeIcon icon="fa-solid fa-bell" className="text-xl" />
-          <span className="absolute -top-1 -right-1 flex h-2 w-2 rounded-full bg-blue-500"></span>
+          {hasNewAlerts && <span className="absolute -top-1 -right-1 flex h-2 w-2 rounded-full bg-blue-500"></span>}
         </NavLink>
       </div>
 

@@ -26,7 +26,7 @@ export default function NotificationsPage() {
     return () => unsubscribe()
   }, [])
 
-  if (loading) return <div className="p-6 text-slate-500 dark:text-slate-400">⏳ Checking for alerts...</div>;
+  if (loading) return <div className="flex items-center justify-center p-10"><div className="loading-spinner" /></div>;
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-black dark:text-white text-xl gap-4">

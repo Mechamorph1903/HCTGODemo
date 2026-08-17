@@ -33,7 +33,7 @@ export default function SettingsPage() {
 
  
 
-  if (loading) return <div className="p-6 text-slate-500">⏳ Reading profile settings...</div>;
+  if (loading) return <div className="flex items-center justify-center p-10"><div className="loading-spinner" /></div>;
 
   return (
     <div className="flex flex-col h-full text-black overflow-y-auto [&::-webkit-scrollbar]:hidden dark:text-white dark:bg-slate-900">

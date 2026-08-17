@@ -177,7 +177,7 @@ export default function RoutePage({route}){
         }
     }, [busPositions, currRoute])
 
-    if (loading || !currRoute) return <div className="p-6 text-slate-500 dark:text-slate-400">⏳ Syncing route details...</div>;
+    if (loading || !currRoute) return <div className="flex items-center justify-center p-10"><div className="loading-spinner" /></div>;
 
 
 

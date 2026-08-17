@@ -29,7 +29,7 @@ export default function Lines() {
     fetchRoutes();
   }, []);
 
-  if (loading) return <div className="p-5 text-slate-500 dark:text-slate-400">⏳ Loading active lines...</div>;
+  if (loading) return <div className="flex items-center justify-center p-10"><div className="loading-spinner" /></div>;
 
   return (
     <div className="grid grid-columns-3 grid-rows-9 h-full text-black dark:text-white text-xl p-5 py-2">

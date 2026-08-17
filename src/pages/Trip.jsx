@@ -36,6 +36,25 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
     const [liveUserLocation, setLiveUserLocation] = useState(null)
     const busPositions = useLiveBuses()
 
+    const activeSegment = tripStarted && selectedOption ? selectedOption.segments[activeSegmentIndex] : null
+
+    const myBus = useMemo(() => {
+        if (!activeSegment || activeSegment.mode === 'walk' || !busPositions.length) return null
+        const route = routeLookup[activeSegment.mode]
+        if (!route) return null
+        const routeBuses = busPositions.filter(bus => bus.attributes.created_user.includes(route.name))
+        if (!routeBuses.length) return null
+        const boardStop = stopLookup[nodeKey(activeSegment.mode, activeSegment.boardStop)]
+        if (!boardStop) return null
+        const nearest = findNearestStop(boardStop.coords[0], boardStop.coords[1],
+            routeBuses.map(b => ({ coords: [b.geometry.y, b.geometry.x], _raw: b }))
+        )
+        if (!nearest) return null
+        return nearest._raw
+    }, [activeSegment, busPositions, routeLookup, stopLookup])
+
+    const PROXIMITY_THRESHOLD = 0.0003
+
     const groupedStops = useMemo(() => stopGrouper(allStops), [allStops])
     const adjacencyList = useMemo(() => buildTransitGraph(groupedStops, routes), [groupedStops, routes])
     const routeLookup = useMemo(() => {
@@ -380,6 +399,64 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         return () => navigator.geolocation.clearWatch(watchId)
     }, [tripStarted])
 
+    // Auto-advance to next segment when near endpoint
+    useEffect(() => {
+        if (!tripStarted || !liveUserLocation || !selectedOption) return
+        const seg = selectedOption.segments[activeSegmentIndex]
+        if (!seg) return
+        const segs = selectedOption.segments
+        let targetLat, targetLng
+        if (seg.mode === 'walk') {
+            const walkCoords = seg.geometry?.coordinates
+            if (!walkCoords?.length) return
+            const last = walkCoords[walkCoords.length - 1]
+            targetLng = last[0]; targetLat = last[1]
+        } else {
+            const alightStop = stopLookup[nodeKey(seg.mode, seg.alightStop)]
+            if (!alightStop) return
+            targetLat = alightStop.coords[0]; targetLng = alightStop.coords[1]
+        }
+        const dist = Math.sqrt(
+            (liveUserLocation[0] - targetLat) ** 2 +
+            (liveUserLocation[1] - targetLng) ** 2
+        )
+        if (dist < PROXIMITY_THRESHOLD && activeSegmentIndex < segs.length - 1) {
+            setActiveSegmentIndex(activeSegmentIndex + 1)
+        }
+    }, [liveUserLocation, tripStarted, activeSegmentIndex, selectedOption])
+
+    // Draw "your bus" marker on map
+    useEffect(() => {
+        if (!map.current || !map.current.isStyleLoaded()) return
+        const busGeoJSON = myBus ? {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [myBus.geometry.x, myBus.geometry.y] },
+            properties: {}
+        } : { type: 'Feature', geometry: { type: 'Point', coordinates: [0, 0] }, properties: {} }
+
+        if (!map.current.getSource('my-bus')) {
+            map.current.addSource('my-bus', { type: 'geojson', data: busGeoJSON })
+            map.current.addLayer({
+                id: 'my-bus-ring',
+                type: 'circle',
+                source: 'my-bus',
+                paint: { 'circle-radius': 16, 'circle-color': 'rgba(59,130,246,0.2)', 'circle-stroke-width': 0 }
+            })
+            map.current.addLayer({
+                id: 'my-bus-dot',
+                type: 'circle',
+                source: 'my-bus',
+                paint: { 'circle-radius': 9, 'circle-color': '#3B82F6', 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 3 }
+            })
+        } else {
+            map.current.getSource('my-bus').setData(busGeoJSON)
+        }
+
+        const vis = myBus ? 'visible' : 'none'
+        if (map.current.getLayer('my-bus-ring')) map.current.setLayoutProperty('my-bus-ring', 'visibility', vis)
+        if (map.current.getLayer('my-bus-dot')) map.current.setLayoutProperty('my-bus-dot', 'visibility', vis)
+    }, [myBus])
+
     return(
         <div className="h-full text-black dark:text-white text-xl font-sans antialiased mx-auto shadow-xl p-5">
             <div className='flex items-center gap-3 mb-5'>
@@ -638,14 +715,36 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                         </div>
                     )}
 
-                    {/* {selectedOption && !tripStarted && (
+                    {selectedOption && !tripStarted && (
                         <button
-                            onClick={() => setTripStarted(true)}
-                            className="mt-4 w-full py-3 rounded-2xl bg-blue-600 text-white font-semibold"
+                            onClick={() => { setTripStarted(true); setActiveSegmentIndex(0) }}
+                            className="mt-4 w-full py-3 rounded-2xl bg-blue-600 text-white font-semibold text-base"
                         >
                             Start Trip
                         </button>
-                    )} */}
+                    )}
+
+                    {tripStarted && selectedOption && (
+                        <>
+                            <div className="mt-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
+                                <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                    {activeSegment?.mode === 'walk'
+                                        ? `Walking to ${activeSegment.to === 'DESTINATION' ? 'your destination' : activeSegment.to}`
+                                        : `Riding ${routeLookup[activeSegment?.mode]?.name ?? ''} Route → alight at ${activeSegment?.alightStop ?? ''}`
+                                    }
+                                </p>
+                                <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">
+                                    Step {activeSegmentIndex + 1} of {selectedOption.segments.length}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => { setTripStarted(false); setActiveSegmentIndex(0) }}
+                                className="mt-3 w-full py-3 rounded-2xl bg-red-500 text-white font-semibold text-base"
+                            >
+                                End Trip
+                            </button>
+                        </>
+                    )}
 
 
         </div>
