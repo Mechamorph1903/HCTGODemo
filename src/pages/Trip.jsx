@@ -3,17 +3,15 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import { NavLink } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { db } from '../data/firebase.js'
-import { collection, getDocs } from 'firebase/firestore'
+import { useTransitData } from '../context/TransitDataContext.jsx'
 import mapboxgl from 'mapbox-gl'
 import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey,nodeKeyOf, pathToSegments, buildOption, edgeBlocker} from '../utils/navigation.js'
 import { minutesToTimeInput, minutesToClockString } from "../utils/schedule.js";
 import { useDebounce } from "../hooks/debounce.js";
-import { useLiveBuses } from "../hooks/busPositions.js";
+import { useLiveBuses } from "../context/BusPositionsContext.jsx";
 
 export default function Trip({ initialDestination, initialDestinationCoords }) {
-    const [routes, setRoutes] = useState([]) 
-    const [allStops, setAllStops] = useState([])
+    const { routes, allStops } = useTransitData()
     const [userLocation, setUserLocation] = useState(null)
     const [destination, setDestination] = useState(initialDestination ?? '')
     const [origin, setOrigin] = useState('')
@@ -36,6 +34,27 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
     const [liveUserLocation, setLiveUserLocation] = useState(null)
     const busPositions = useLiveBuses()
 
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const isWeekend = departAt ? [0, 6].includes(departAt.getDay()) : [0, 6].includes(new Date().getDay())
+    const dateToLocalInput = (d) => {
+        const pad = (n) => String(n).padStart(2, '0')
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+    }
+
+    const groupedStops = useMemo(() => stopGrouper(allStops), [allStops])
+    const adjacencyList = useMemo(() => buildTransitGraph(groupedStops, routes), [groupedStops, routes])
+    const routeLookup = useMemo(() => {
+        const map = {}
+        for (const r of routes) map[r.id] = r
+        return map
+    }, [routes])
+
+    const stopLookup = useMemo(() => {
+        const map = {}
+        for (const s of allStops) map[nodeKey(s.routeId, s.name)] = s
+        return map
+    }, [allStops])
+
     const activeSegment = tripStarted && selectedOption ? selectedOption.segments[activeSegmentIndex] : null
 
     const myBus = useMemo(() => {
@@ -54,20 +73,6 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
     }, [activeSegment, busPositions, routeLookup, stopLookup])
 
     const PROXIMITY_THRESHOLD = 0.0003
-
-    const groupedStops = useMemo(() => stopGrouper(allStops), [allStops])
-    const adjacencyList = useMemo(() => buildTransitGraph(groupedStops, routes), [groupedStops, routes])
-    const routeLookup = useMemo(() => {
-        const map = {}
-        for (const r of routes) map[r.id] = r
-        return map
-    }, [routes])
-
-    const stopLookup = useMemo(() => {
-        const map = {}
-        for (const s of allStops) map[nodeKey(s.routeId, s.name)] = s
-        return map
-    }, [allStops])
     
     
     const debouncedOrigin = useDebounce(origin, 400)
@@ -190,9 +195,12 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         const effectiveOrigin = originCoords || userLocation
         if (!effectiveOrigin || !destinationCoords.length || !allStops.length || !Object.keys(adjacencyList).length) return
 
-        let nowMin = departAt ?? (new Date().getHours() * 60 + new Date().getMinutes())
-        const actualNow = new Date().getHours() * 60 + new Date().getMinutes()
-        if (departAt !== null && departAt < actualNow) nowMin = departAt + 1440
+        const selectedDate = departAt || new Date()
+        if ([0, 6].includes(selectedDate.getDay())) {
+            setTripOptions({ fastest: [], leastWalking: [], fewestTransfers: [] })
+            return
+        }
+        let nowMin = selectedDate.getHours() * 60 + selectedDate.getMinutes()
         const tripGraph = buildTripGraph(adjacencyList, effectiveOrigin, destinationCoords, allStops)
 
         const [fastestOptions, leastWalkingResult, fewestTransfersResult] = await Promise.all([
@@ -210,33 +218,6 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         setActiveIndex(0)
     }
     
-    useEffect(() => {
-        async function downloadCloudTransitData() {
-        try {
-            // 1. Fetch Route Metadata
-            const routesSnapshot = await getDocs(collection(db, "routes"));
-            const cloudRoutes = [];
-            routesSnapshot.forEach((doc) => {
-            cloudRoutes.push({ id: doc.id, ...doc.data() });
-            });
-            setRoutes(cloudRoutes);
-
-            // 2. Fetch All Stops
-            const stopsSnapshot = await getDocs(collection(db, "stops"));
-            const cloudStops = [];
-            stopsSnapshot.forEach((doc) => {
-            cloudStops.push({ id: doc.id, ...doc.data() });
-            });
-            setAllStops(cloudStops);
-
-        } catch (error) {
-            console.error("Error connecting to Transit Cloud Firestore: ", error);
-        
-        }
-        }
-
-        downloadCloudTransitData();
-    }, []);
 
     //Users Current Location for start point (default)
     useEffect(() => {
@@ -301,6 +282,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
     useEffect(() => {
         if (!map.current || !selectedOption) return
         if (!map.current.isStyleLoaded()) return
+        if (tripStarted) return
 
         for (let i = 0; i < 20; i++) {
             const id = `trip-seg-${i}`
@@ -371,6 +353,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                 trackUserLocation: true,
                 showUserHeading: true
             }))
+            return () => { map.current?.remove(); map.current = null }
         }, [])
 
 
@@ -487,6 +470,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                         onFocus={(e) => {
                             setActiveInput("origin")
                         }}
+                        disabled={tripStarted}
                     />
                     </div>
                     {suggestions.length > 0 && activeInput == "origin" && (
@@ -527,6 +511,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                         onFocus={(e) => {
                             setActiveInput("destination")
                         }}
+                        disabled={tripStarted}
                     />
                     </div>
                     {suggestions.length > 0 && activeInput == "destination" && (
@@ -547,11 +532,12 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
             </div>
             {/* ArriveType */}
             <button
-                onClick={() => setShowTimePicker(!showTimePicker)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 text-sm font-medium mt-3"
+                onClick={() => !tripStarted && setShowTimePicker(!showTimePicker)}
+                disabled={tripStarted}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 text-sm font-medium mt-3 ${tripStarted ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
                 <FontAwesomeIcon icon="fa-solid fa-clock" className="text-slate-400 dark:text-slate-500" />
-                {departAt === null ? "Leave now" : `Leave at ${minutesToClockString(departAt)}`}
+                {departAt === null ? "Leave now" : `${dayNames[departAt.getDay()]} at ${minutesToClockString(departAt.getHours() * 60 + departAt.getMinutes())}`}
                 <FontAwesomeIcon icon="fa-solid fa-chevron-down" className="text-xs text-slate-400 dark:text-slate-500" />
             </button>
 
@@ -564,18 +550,24 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                         Leave now
                     </button>
                     <div className="flex items-center gap-3">
-                        <span className="text-sm text-slate-700 dark:text-slate-300">Leave at</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-300">Depart</span>
                         <input
-                            type="time"
-                            value={departAt === null ? "" : minutesToTimeInput(departAt)}
+                            type="datetime-local"
+                            value={departAt ? dateToLocalInput(departAt) : ''}
                             onChange={(e) => {
                                 if (!e.target.value) return
-                                const [h, m] = e.target.value.split(":").map(Number)
-                                setDepartAt(h * 60 + m)
+                                setDepartAt(new Date(e.target.value))
                             }}
                             className="bg-slate-100 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm"
                         />
                     </div>
+                </div>
+            )}
+
+            {isWeekend && (
+                <div className="mt-4 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 text-center">
+                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">No bus service on weekends</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Service runs Monday through Friday</p>
                 </div>
             )}
 
@@ -592,7 +584,8 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                 setActiveIndex(0)
                                 setExpandedSeg(null)
                             }}
-                            className="bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm font-medium mt-4"
+                            disabled={tripStarted}
+                            className={`bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm font-medium mt-4 ${tripStarted ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             <option value="fastest">Fastest</option>
                             <option value="leastWalking">Least walking</option>
@@ -611,14 +604,16 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                     <button
                                         key={opt.id ?? i}
                                         onClick={() => {
+                                            if (tripStarted) return
                                             setActiveIndex(i)
                                             setExpandedSeg(null)
                                         }}
+                                        disabled={tripStarted}
                                         className={`flex flex-col items-start px-4 py-3 rounded-2xl border shrink-0 transition-colors ${
                                             activeIndex === i
                                                 ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white'
                                                 : 'bg-white text-slate-900 border-slate-200 dark:bg-slate-800 dark:text-white dark:border-slate-700'
-                                        }`}
+                                        } ${tripStarted ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
                                         <span className="text-xs font-medium opacity-70">
                                             {tripOptions[activeObjective].length > 1 ? `Route ${i + 1}` : opt.label}

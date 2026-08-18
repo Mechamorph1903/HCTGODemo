@@ -2,6 +2,8 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRef, useEffect } from 'react'
 import { AuthProvider } from './context/AuthContext.jsx'
+import { TransitDataProvider } from './context/TransitDataContext.jsx'
+import { BusPositionsProvider } from './context/BusPositionsContext.jsx'
 import BottomNav from './components/BottomNav'
 import Home from './pages/Home'
 import Lines from './pages/Lines'
@@ -68,6 +70,8 @@ export default function App() {
     //AuthProvider signs the user in anonymously once here and hands uid/profile to every page below
     <ThemeProvider>
       <AuthProvider>
+        <TransitDataProvider>
+        <BusPositionsProvider>
         <div className="mx-auto h-screen max-w-lg bg-white text-black dark:bg-slate-900 dark:text-white flex flex-col">
           <main className='flex-1 border-x-2 border-black dark:border-slate-700 overflow-y-auto overflow-x-hidden scroll-smooth overscroll-contain[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative '>
             <NameGate>
@@ -104,6 +108,8 @@ export default function App() {
           </main>
           <BottomNav />
         </div>
+        </BusPositionsProvider>
+        </TransitDataProvider>
       </AuthProvider>
     </ThemeProvider>
   )

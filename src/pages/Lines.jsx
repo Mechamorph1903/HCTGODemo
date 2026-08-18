@@ -1,33 +1,10 @@
 import RoutePill from "../components/RoutePill.jsx"
-import { useState, useEffect } from "react"
 import { NavLink } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { db } from '../data/firebase.js'
-import { collection, getDocs } from 'firebase/firestore'
+import { useTransitData } from '../context/TransitDataContext.jsx'
 
 export default function Lines() {
-  const [routes, setRoutes] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  //EFFECT: load every route's metadata from firestore once on mount so we can list a pill per route
-  useEffect(() => {
-    async function fetchRoutes() {
-      try {
-        const querySnapshot = await getDocs(collection(db, "routes"));
-        const cloudRoutes = [];
-        querySnapshot.forEach((doc) => {
-          cloudRoutes.push({ id: doc.id, ...doc.data() });
-        });
-        setRoutes(cloudRoutes);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching lines registry: ", error);
-        setLoading(false);
-      }
-    }
-    fetchRoutes();
-  }, []);
+  const { routes, loading } = useTransitData()
 
   if (loading) return <div className="flex items-center justify-center p-10"><div className="loading-spinner" /></div>;
 

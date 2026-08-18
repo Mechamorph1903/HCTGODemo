@@ -3,15 +3,15 @@ import { NavLink } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { db } from '../data/firebase.js'
-import { collection, getDocs, query, orderBy, limit, onSnapshot } from 'firebase/firestore'
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore'
 import mapboxgl from 'mapbox-gl'
-import { useLiveBuses } from '../hooks/busPositions.js'
+import { useLiveBuses } from '../context/BusPositionsContext.jsx'
+import { useTransitData } from '../context/TransitDataContext.jsx'
 import { useAuthContext } from '../context/AuthContext.jsx'
 import { findNearestStops, scheduleAlignment, buildLineCoords } from '../utils/navigation.js'
 
 export default function Home() {
-  const [routes, setRoutes] = useState([])       // Holds our 7 color lines metadata
-  const [allStops, setAllStops] = useState([])   // Holds all stops globally for mapping
+  const { routes, allStops } = useTransitData()
   const [activeFilter, setActiveFilter] = useState(null)
   const [hasNewAlerts, setHasNewAlerts] = useState(false)
   //mapbox refs
@@ -50,36 +50,6 @@ export default function Home() {
     setHasNewAlerts(false)
   }
 
-  //EFFECT 1: Fetch Routes and Stops from Cloud Firestore on Boot
-  useEffect(() => {
-    async function downloadCloudTransitData() {
-      try {
-        // 1. Fetch Route Metadata
-        const routesSnapshot = await getDocs(collection(db, "routes"));
-        const cloudRoutes = [];
-        routesSnapshot.forEach((doc) => {
-          cloudRoutes.push({ id: doc.id, ...doc.data() });
-        });
-        setRoutes(cloudRoutes);
-
-        // 2. Fetch All Stops
-        const stopsSnapshot = await getDocs(collection(db, "stops"));
-        const cloudStops = [];
-        stopsSnapshot.forEach((doc) => {
-          cloudStops.push({ id: doc.id, ...doc.data() });
-        });
-        setAllStops(cloudStops);
-
-      } catch (error) {
-        console.error("Error connecting to Transit Cloud Firestore: ", error);
-       
-      }
-    }
-
-    downloadCloudTransitData();
-  }, []);
-
-  //EFFECT 2: Live ESRI/ArcGIS Bus Tracker API (runs every 5 seconds)
   const busPositions = useLiveBuses()
 
   //EFFECT 3: create map object
@@ -91,6 +61,7 @@ export default function Home() {
       center: [-89.2903, 31.3271],
       zoom: 12
     })
+    return () => { map.current?.remove(); map.current = null }
   }, [])
 
   //EFFECT 4: creates mapbox object with props and checks if mapbox object is drawn nd if stopdata is ready before adding layers then adds the layers such as stops and lines

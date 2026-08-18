@@ -14,6 +14,7 @@ export default function NameGate({children}){
     const [usernameError, setUsernameError] = useState(null)
 
     const MIN_USERNAME_LENGTH = 5
+    const MAX_SUGGESTION_ATTEMPTS = 10
 
     const debouncedFName = useDebounce(fName, 400)
     const debouncedLName = useDebounce(lName, 400)

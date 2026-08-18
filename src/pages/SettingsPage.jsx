@@ -1,37 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { db } from '../data/firebase.js'
-import { collection, getDocs } from 'firebase/firestore'
 import { useAuthContext } from '../context/AuthContext.jsx'
 import { useThemeContext } from '../context/ThemeContext.jsx'
+import { useTransitData } from '../context/TransitDataContext.jsx'
 
 export default function SettingsPage() {
-  const [routes, setRoutes] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { routes, loading } = useTransitData()
   const { preference, setTheme } = useThemeContext()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const {profile, toggleFavorite } = useAuthContext()
-
-  //EFFECT: pull the route list from firestore so we have something to list as favourite-able
-  useEffect(() => {
-    async function loadRoutes() {
-      try {
-        const querySnapshot = await getDocs(collection(db, "routes"));
-        const cloudRoutes = [];
-        querySnapshot.forEach((doc) => {
-          cloudRoutes.push({ id: doc.id, ...doc.data() });
-        });
-        setRoutes(cloudRoutes);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error setting up options pane array structures: ", error);
-        setLoading(false);
-      }
-    }
-    loadRoutes();
-  }, []);
-
- 
 
   if (loading) return <div className="flex items-center justify-center p-10"><div className="loading-spinner" /></div>;
 

@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import getRouteCentroid, { webMercatorToLatLng } from "../utils/coords.js"
 import scheduleGenerator, { minutesToClockString, getNextArrivalStatus } from '../utils/schedule.js'
-import { useLiveBuses } from '../hooks/busPositions.js'
+import { useLiveBuses } from '../context/BusPositionsContext.jsx'
 import { buildLineCoords } from '../utils/navigation.js'
 import { useEffect, useRef, useState } from 'react'
 import { db } from '../data/firebase.js'
@@ -137,7 +137,8 @@ export default function RoutePage({route}){
 
           })
 
-        })  
+        })
+        return () => { map.current?.remove(); map.current = null }
       }, [currRoute, routeStops])
 
       useEffect(() => {
@@ -176,6 +177,8 @@ export default function RoutePage({route}){
             map.current.getSource('bus-positions').setData(busGeoJSON)
         }
     }, [busPositions, currRoute])
+
+    const isWeekend = [0, 6].includes(new Date().getDay())
 
     if (loading || !currRoute) return <div className="flex items-center justify-center p-10"><div className="loading-spinner" /></div>;
 
@@ -239,6 +242,12 @@ export default function RoutePage({route}){
                         <span className='inline-block rounded-lg h-2 w-2 bg-purple-600'></span>
                         <span className='inline-block rounded-lg h-2 w-2 bg-orange-300'></span>
                     </div>
+                    {isWeekend && (
+                        <div className="mb-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800">
+                            <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">No service today</p>
+                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Buses run Monday through Friday. Times shown are weekday schedules.</p>
+                        </div>
+                    )}
                     <div className='border-l-2 border-l-slate-400 dark:border-l-slate-600 pl-4'>
                         {/* for the stops. expands to show arrival times and/or stop pictures*/}
                         {
@@ -271,7 +280,7 @@ export default function RoutePage({route}){
                                     </div>
                                     <div className='flex flex-col items-end text-right whitespace-nowrap'>
                                         <p className='text-xs text-slate-400 dark:text-slate-500'>Next Scheduled</p>
-                                        <p className='text-sm font-medium'>{nextArrival}</p>
+                                        <p className='text-sm font-medium'>{isWeekend ? 'No service' : nextArrival}</p>
                                     </div>
                                     <button
                                         onClick={() => setExpandedStop(expandedStop === stop.id ? null : stop.id)}
