@@ -38,11 +38,15 @@ export default function NameGate({children}){
 
             let candidate
             let attempts = 0
-            do {
-                const randomSuffix = Math.floor(Math.random() * 900) + 100   // random 3-digit number, 100–999
-                candidate = `${base}${randomSuffix}`
-                attempts++
-            } while (await isUsernameTaken(candidate) && attempts < MAX_SUGGESTION_ATTEMPTS)
+            try {
+                do {
+                    const randomSuffix = Math.floor(Math.random() * 900) + 100
+                    candidate = `${base}${randomSuffix}`
+                    attempts++
+                } while (await isUsernameTaken(candidate) && attempts < MAX_SUGGESTION_ATTEMPTS)
+            } catch {
+                candidate = `${base}${Math.floor(Math.random() * 900) + 100}`
+            }
 
             setUName(candidate)
         }
