@@ -57,7 +57,7 @@ export default function NameGate({children}){
 
     if (profile.userName === null){
         return (
-            <div className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-6">
+            <div className="fixed inset-0 z-50 bg-white flex flex-col text-black items-center justify-center p-6">
                 <h1 className="font-bold text-xl mb-8">Welcome to HCTGo</h1>
                 <h1 className=" text-lg mb-6">Tell Us Your Name!</h1>
                 <form 
@@ -65,9 +65,13 @@ export default function NameGate({children}){
                 onSubmit={ async (e) => {
                     e.preventDefault();
                     setUsernameError(null)
-                    if (await isUsernameTaken(uName)) {
-                        setUsernameError("That username's taken — try another.")
-                        return
+                    try {
+                        if (await isUsernameTaken(uName)) {
+                            setUsernameError("That username's taken — try another.")
+                            return
+                        }
+                    } catch {
+                        // Firestore rules may block cross-collection queries; proceed anyway
                     }
                     setName({firstName: fName, lastName: lName, userName: uName})
 

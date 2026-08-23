@@ -5,13 +5,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { useTransitData } from '../context/TransitDataContext.jsx'
 import mapboxgl from 'mapbox-gl'
-import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey,nodeKeyOf, pathToSegments, buildOption, edgeBlocker} from '../utils/navigation.js'
+import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey,nodeKeyOf, pathToSegments, buildOption, edgeBlocker, resolveBusRoute} from '../utils/navigation.js'
 import { minutesToTimeInput, minutesToClockString } from "../utils/schedule.js";
 import { useDebounce } from "../hooks/debounce.js";
 import { useLiveBuses } from "../context/BusPositionsContext.jsx";
 
 export default function Trip({ initialDestination, initialDestinationCoords }) {
-    const { routes, allStops } = useTransitData()
+    const { routes, allStops, busDocs } = useTransitData()
     const [userLocation, setUserLocation] = useState(null)
     const [destination, setDestination] = useState(initialDestination ?? '')
     const [origin, setOrigin] = useState('')
@@ -61,7 +61,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         if (!activeSegment || activeSegment.mode === 'walk' || !busPositions.length) return null
         const route = routeLookup[activeSegment.mode]
         if (!route) return null
-        const routeBuses = busPositions.filter(bus => bus.attributes.created_user.includes(route.name))
+        const routeBuses = busPositions.filter(bus => resolveBusRoute(bus.attributes.created_user, busDocs, routes)?.id === route.id)
         if (!routeBuses.length) return null
         const boardStop = stopLookup[nodeKey(activeSegment.mode, activeSegment.boardStop)]
         if (!boardStop) return null
@@ -70,7 +70,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         )
         if (!nearest) return null
         return nearest._raw
-    }, [activeSegment, busPositions, routeLookup, stopLookup])
+    }, [activeSegment, busPositions, routeLookup, stopLookup, busDocs, routes])
 
     const PROXIMITY_THRESHOLD = 0.0003
     
@@ -235,9 +235,9 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
 
     //getting suggestions for points from mapbox
     useEffect(() => {
-        //when user selects a suggestion/ it sets destination selected to true preventing geocode from firing again
         if (!debouncedOrigin || originSelected) {
             setOriginSelected(false)
+            if (!debouncedOrigin) setOriginCoords(null)
             return
         }
 
@@ -380,6 +380,36 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
             { enableHighAccuracy: true }
         )
         return () => navigator.geolocation.clearWatch(watchId)
+    }, [tripStarted])
+
+    //when trip starts, fit camera to trip bounds and restrict panning
+    useEffect(() => {
+        if (!map.current) return
+        if (!tripStarted) {
+            map.current.setMaxBounds(null)
+            return
+        }
+        if (!selectedOption) return
+        const allCoords = selectedOption.segments.flatMap(seg =>
+            seg.mode === "walk" ? seg.geometry?.coordinates ?? [] : seg.coords ?? []
+        )
+        if (liveUserLocation) {
+            allCoords.push([liveUserLocation[1], liveUserLocation[0]])
+        } else if (userLocation) {
+            allCoords.push([userLocation[1], userLocation[0]])
+        }
+        if (!allCoords.length) return
+        const lngs = allCoords.map(c => c[0])
+        const lats = allCoords.map(c => c[1])
+        map.current.fitBounds(
+            [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
+            { padding: 80 }
+        )
+        const PAD = 0.008
+        map.current.setMaxBounds([
+            [Math.min(...lngs) - PAD, Math.min(...lats) - PAD],
+            [Math.max(...lngs) + PAD, Math.max(...lats) + PAD]
+        ])
     }, [tripStarted])
 
     // Auto-advance to next segment when near endpoint

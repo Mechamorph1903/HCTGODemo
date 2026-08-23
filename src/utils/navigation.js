@@ -4,17 +4,10 @@ import { minutesToClockString } from "./schedule"
 
 //buckets every stop by its route color and sorts each bucket by stop order, so the graph builder can walk each route in sequence
 export const stopGrouper = (stops) => {
-    const grouped = {
-      blue: [],
-      gold: [],
-      purple: [],
-      red: [],
-      orange: [],
-      green: [],
-      brown: []
-    }
+    const grouped = {}
 
     for(const stop of stops){
+      if (!grouped[stop.routeId]) grouped[stop.routeId] = []
       grouped[stop.routeId].push(stop)
     }
 
@@ -71,9 +64,18 @@ export const stopDeparture = (route, stop, currentMin) => {
 export const buildTransitGraph = (groupedStops, routes) => {
 	const adjacencyList = {}
 
+	const routeMap = {}
+	for (const r of routes) routeMap[r.id] = r
 
 	for(const route in groupedStops){
-		const stops = groupedStops[route]
+		const routeObj = routeMap[route]
+		if (routeObj?.isActive === false) continue
+
+		const skipped = new Set(routeObj?.skippedStops || [])
+		const stops = skipped.size
+			? groupedStops[route].filter(s => !skipped.has(s.id))
+			: groupedStops[route]
+
 		stops.forEach((stop, index) => {
 			const nextStop = stops[index + 1]
 			const key = nodeKey(stop.routeId, stop.name)
@@ -92,7 +94,6 @@ export const buildTransitGraph = (groupedStops, routes) => {
 		const firstStop = stops[0]
 		const lastStop = stops[stops.length - 1]
 		if (firstStop && lastStop && firstStop !== lastStop) {
-			const routeObj = routes.find(r => r.id === firstStop.routeId)
 			const loopDuration = routeObj.frequency[0]
 			const wrapWeight = loopDuration - lastStop.minuteOffset
 			adjacencyList[nodeKey(lastStop.routeId, lastStop.name)].push({
@@ -105,22 +106,30 @@ export const buildTransitGraph = (groupedStops, routes) => {
 
 	//transfer edges - connect same-named stops across different routes so riders can switch buses there
 	for(const route in groupedStops){
-		let stops = groupedStops[route]
+		if (routeMap[route]?.isActive === false) continue
+		const skippedT = new Set(routeMap[route]?.skippedStops || [])
+		let stops = skippedT.size
+			? groupedStops[route].filter(s => !skippedT.has(s.id))
+			: groupedStops[route]
 
 		for(const stop of stops){
 			if(stop.transfer.available === true){
 				for(const connectedRoute of stop.transfer.connections){
-						let connectedStops = groupedStops[connectedRoute.toLowerCase().trim()]
+						const connId = connectedRoute.toLowerCase().trim()
+						if (routeMap[connId]?.isActive === false) continue
+						let connectedStops = groupedStops[connId]
 						if(!connectedStops) {
 						console.log('Missing route in groupedStops:', connectedRoute)
 						continue
 						}
-						if (!connectedStops) continue  // skip if route doesn't exist in groupedStops
+
+						const connSkipped = new Set(routeMap[connId]?.skippedStops || [])
+						if (connSkipped.size) connectedStops = connectedStops.filter(s => !connSkipped.has(s.id))
 
 						for(const stopsInner of connectedStops){
 							const cleanName = (name) => name.replace(/\s*\(return\)/i, '').trim()
 							if(cleanName(stop.name) === cleanName(stopsInner.name)){
-								const connectingRoute = routes.find(r => r.id === connectedRoute.toLowerCase().trim())
+								const connectingRoute = routeMap[connId]
 								if (!connectingRoute) continue
 
 								const freq = effectiveHeadway(connectingRoute)
@@ -436,7 +445,29 @@ export const buildOption = async (segments, clock, nowMin, originCoords, destina
 				const route = routeLookup[seg.mode]
 				duration += route.frequency[0]
 			}
-			const coords = seg.stops.map(resolveCoord)
+
+			const route = routeLookup[seg.mode]
+			let coords
+			const shape = route?.detourShapePoints?.length ? route.detourShapePoints : route?.shapePoints
+			if (shape?.length) {
+				const closestIdx = (lat, lng) => {
+					let best = 0, bestDist = Infinity
+					for (let i = 0; i < shape.length; i++) {
+						const d = (shape[i].lat - lat) ** 2 + (shape[i].lng - lng) ** 2
+						if (d < bestDist) { bestDist = d; best = i }
+					}
+					return best
+				}
+				const startIdx = closestIdx(board.coords[0], board.coords[1])
+				const endIdx = closestIdx(alight.coords[0], alight.coords[1])
+				if (startIdx <= endIdx) {
+					coords = shape.slice(startIdx, endIdx + 1).map(p => [p.lng, p.lat])
+				} else {
+					coords = shape.slice(startIdx).concat(shape.slice(0, endIdx + 1)).map(p => [p.lng, p.lat])
+				}
+			} else {
+				coords = seg.stops.map(resolveCoord)
+			}
 
 			seg.boardStop = first.name
 			seg.alightStop = last.name
@@ -514,13 +545,21 @@ export const scheduleAlignment = (route, stop, nowMin) => {
 }
 
 export const buildLineCoords = (route, routeStops) => {
-    // prefer the hand-traced shape once it exists
+    if (route.detourShapePoints?.length) {
+        return route.detourShapePoints.map(p => [p.lng, p.lat])
+    }
     if (route.shapePoints?.length) {
         return route.shapePoints.map(p => [p.lng, p.lat])
     }
-    // fallback: straight lines through stops, manually closed —
-    // only hit if a route somehow has no shapePoints yet
     const coords = routeStops.map(stop => [stop.coords[1], stop.coords[0]])
     if (routeStops.length > 1) coords.push(coords[0])
     return coords
+}
+
+export const resolveBusRoute = (trackerName, busDocs, routes) => {
+    const busDoc = busDocs.find(b => b.trackerName === trackerName)
+    if (!busDoc) return null
+    const assigned = routes.find(r => r.id === busDoc.assignedRouteId && r.isActive !== false)
+    if (assigned) return assigned
+    return routes.find(r => r.id === busDoc.homeRouteId) || null
 }

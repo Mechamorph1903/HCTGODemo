@@ -4,7 +4,8 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import getRouteCentroid, { webMercatorToLatLng } from "../utils/coords.js"
 import scheduleGenerator, { minutesToClockString, getNextArrivalStatus } from '../utils/schedule.js'
 import { useLiveBuses } from '../context/BusPositionsContext.jsx'
-import { buildLineCoords } from '../utils/navigation.js'
+import { useTransitData } from '../context/TransitDataContext.jsx'
+import { buildLineCoords, resolveBusRoute } from '../utils/navigation.js'
 import { useEffect, useRef, useState } from 'react'
 import { db } from '../data/firebase.js'
 import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore'
@@ -16,6 +17,7 @@ export default function RoutePage({route}){
     const [loading, setLoading] = useState(true)
     const [expandedStop, setExpandedStop] = useState(null)
     const busPositions = useLiveBuses()
+    const { routes: allRoutes, allStops, busDocs } = useTransitData()
 
     // 📡 EFFECT: Fetch individual route metadata and its relational stops array
     useEffect(() => {
@@ -105,6 +107,7 @@ export default function RoutePage({route}){
 
             //Stops
 
+            const skippedSet = new Set(currRoute.skippedStops || [])
             map.current.addSource(`stops-${currRoute.id}`, {
             type: `geojson`,
             data: {
@@ -114,7 +117,8 @@ export default function RoutePage({route}){
                 properties: {
                   id: stop.id,
                   name: stop.name,
-                  route: stop.routeId
+                  route: stop.routeId,
+                  isSkipped: skippedSet.has(stop.id)
                 },
                 geometry: {
                   type: "Point",
@@ -130,12 +134,36 @@ export default function RoutePage({route}){
             source: `stops-${currRoute.id}`,
             paint: {
               'circle-radius': 4,
-              'circle-color': '#ffffff',
-              'circle-stroke-color': currRoute.color,
-              'circle-stroke-width': 2
+              'circle-color': ['case', ['get', 'isSkipped'], '#94a3b8', '#ffffff'],
+              'circle-stroke-color': ['case', ['get', 'isSkipped'], '#94a3b8', currRoute.color],
+              'circle-stroke-width': 2,
+              'circle-opacity': ['case', ['get', 'isSkipped'], 0.5, 1]
             }
 
           })
+
+          map.current.on('click', `stops-stop-${currRoute.id}`, (e) => {
+            const stopName = e.features[0].properties.name
+            const isSkipped = e.features[0].properties.isSkipped
+            const matchingStops = allStops.filter(s => s.name === stopName)
+            const servedIds = [...new Set(matchingStops.map(s => s.routeId))]
+            const servedRoutes = servedIds.map(id => allRoutes.find(r => r.id === id)).filter(Boolean)
+            const transfers = [...new Set(matchingStops.flatMap(s => s.transfer?.connections || []).map(t => t.trim().toLowerCase()))]
+            const transferRoutes = transfers.filter(t => !servedIds.includes(t)).map(id => allRoutes.find(r => r.id === id)).filter(Boolean)
+
+            let html = `<div style="font-family:system-ui;min-width:120px"><div style="font-weight:700;font-size:13px;margin-bottom:4px">${stopName}</div>`
+            if (isSkipped) {
+              html += `<div style="font-size:11px;color:#ef4444;margin-bottom:4px">Skipped — detour in effect</div>`
+            }
+            html += `<div style="display:flex;flex-wrap:wrap;gap:6px">${servedRoutes.map(r => '<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px"><span style="width:8px;height:8px;border-radius:50%;background:'+r.color+';display:inline-block"></span>'+r.name+'</span>').join('')}</div>`
+            if (transferRoutes.length) {
+              html += `<div style="margin-top:6px;font-size:11px;color:#64748b">Transfers: ${transferRoutes.map(r => '<span style="display:inline-flex;align-items:center;gap:3px"><span style="width:6px;height:6px;border-radius:50%;background:'+r.color+';display:inline-block"></span>'+r.name+'</span>').join(' ')}</div>`
+            }
+            html += '</div>'
+            new mapboxgl.Popup({ closeButton: false, offset: 10 }).setLngLat(e.lngLat).setHTML(html).addTo(map.current)
+          })
+          map.current.on('mouseenter', `stops-stop-${currRoute.id}`, () => { map.current.getCanvas().style.cursor = 'pointer' })
+          map.current.on('mouseleave', `stops-stop-${currRoute.id}`, () => { map.current.getCanvas().style.cursor = '' })
 
         })
         return () => { map.current?.remove(); map.current = null }
@@ -146,7 +174,7 @@ export default function RoutePage({route}){
         if (!map.current.isStyleLoaded()) return
 
         const routeBuses = busPositions.filter(bus =>
-            bus.attributes.created_user.includes(currRoute.name)
+            resolveBusRoute(bus.attributes.created_user, busDocs, allRoutes)?.id === currRoute.id
         )
 
         const busGeoJSON = {
@@ -176,7 +204,7 @@ export default function RoutePage({route}){
         } else {
             map.current.getSource('bus-positions').setData(busGeoJSON)
         }
-    }, [busPositions, currRoute])
+    }, [busPositions, currRoute, busDocs, allRoutes])
 
     const isWeekend = [0, 6].includes(new Date().getDay())
 
@@ -252,6 +280,8 @@ export default function RoutePage({route}){
                         {/* for the stops. expands to show arrival times and/or stop pictures*/}
                         {
                             routeStops.map((stop, index) => {
+                                const skippedSet = new Set(currRoute.skippedStops || [])
+                                const isSkipped = skippedSet.has(stop.id)
                                 // 1. Generate the stop's full array of times first
                                 const stopTimes = scheduleGenerator(
                                     stop.minuteOffset,
@@ -263,12 +293,13 @@ export default function RoutePage({route}){
                                 );
                                 // 2. Calculate its next arrival status instantly
                                 const nextArrival = getNextArrivalStatus(stopTimes, currRoute.runtime.end);
-                                
-                                
+
+
                                 return (
-                                <div className='grid grid-cols-[1fr_auto_2.25rem] justify-center items-center mb-5 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-3 gap-2' key={index}>
+                                <div className={`grid grid-cols-[1fr_auto_2.25rem] justify-center items-center mb-5 border-2 rounded-lg p-3 gap-2 ${isSkipped ? 'border-slate-300 dark:border-slate-600 opacity-50' : 'border-slate-200 dark:border-slate-700'}`} key={index}>
                                     <div>
                                         <p>{stop.name}</p>
+                                        {isSkipped && <p className="text-xs text-red-500 font-medium mt-0.5">Skipped — detour in effect</p>}
                                         {/*transfer dots live under the name now instead of the fixed-width action column, so a stop with more transfers can't shove the expand button out of alignment with the rows above/below it*/}
                                         {stop.transfer?.available && stop.transfer?.connections?.length > 0 && (
                                             <div id="transfers" className='flex flex-wrap gap-1.5 mt-1'>

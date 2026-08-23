@@ -8,10 +8,11 @@ import mapboxgl from 'mapbox-gl'
 import { useLiveBuses } from '../context/BusPositionsContext.jsx'
 import { useTransitData } from '../context/TransitDataContext.jsx'
 import { useAuthContext } from '../context/AuthContext.jsx'
-import { findNearestStops, scheduleAlignment, buildLineCoords } from '../utils/navigation.js'
+import { findNearestStops, scheduleAlignment, buildLineCoords, resolveBusRoute } from '../utils/navigation.js'
 
 export default function Home() {
-  const { routes, allStops } = useTransitData()
+  const { routes: rawRoutes, allStops, busDocs } = useTransitData()
+  const routes = rawRoutes.filter(r => r.isActive !== false).sort((a, b) => (b.isSpecial ? 1 : 0) - (a.isSpecial ? 1 : 0))
   const [activeFilter, setActiveFilter] = useState(null)
   const [hasNewAlerts, setHasNewAlerts] = useState(false)
   //mapbox refs
@@ -19,13 +20,9 @@ export default function Home() {
   const map = useRef(null) // stores the mapbox instance
   mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
- //this gets the created_user from the api and matches it to the appropriate object in the routes array so as to get the right color for bus icons
   const getBusColor = (createdUser) => {
-    const route = routes.find(route => createdUser.includes(route.name))
-    if(route){
-      return route.color
-    }
-    return "Gray"
+    const resolved = resolveBusRoute(createdUser, busDocs, routes)
+    return resolved ? resolved.color : 'Gray'
   }
 
   const { profile } = useAuthContext()
@@ -109,6 +106,7 @@ export default function Home() {
         }
 
         if(!map.current.getSource(`stops-${route.id}`)){
+          const skippedSet = new Set(route.skippedStops || [])
           map.current.addSource(`stops-${route.id}`, {
             type: `geojson`,
             data: {
@@ -118,7 +116,8 @@ export default function Home() {
                 properties: {
                   id: stop.id,
                   name: stop.name,
-                  route: stop.routeId
+                  route: stop.routeId,
+                  isSkipped: skippedSet.has(stop.id)
                 },
                 geometry: {
                   type: "Point",
@@ -134,12 +133,36 @@ export default function Home() {
             source: `stops-${route.id}`,
             paint: {
               'circle-radius': 4,
-              'circle-color': '#ffffff',
-              'circle-stroke-color': route.color,
-              'circle-stroke-width': 2
+              'circle-color': ['case', ['get', 'isSkipped'], '#94a3b8', '#ffffff'],
+              'circle-stroke-color': ['case', ['get', 'isSkipped'], '#94a3b8', route.color],
+              'circle-stroke-width': 2,
+              'circle-opacity': ['case', ['get', 'isSkipped'], 0.5, 1]
             }
 
           })
+
+          map.current.on('click', `stops-stop-${route.id}`, (e) => {
+            const stopName = e.features[0].properties.name
+            const isSkipped = e.features[0].properties.isSkipped
+            const matchingStops = allStops.filter(s => s.name === stopName)
+            const servedIds = [...new Set(matchingStops.map(s => s.routeId))]
+            const servedRoutes = servedIds.map(id => routes.find(r => r.id === id)).filter(Boolean)
+            const transfers = [...new Set(matchingStops.flatMap(s => s.transfer?.connections || []).map(t => t.trim().toLowerCase()))]
+            const transferRoutes = transfers.filter(t => !servedIds.includes(t)).map(id => routes.find(r => r.id === id)).filter(Boolean)
+
+            let html = `<div style="font-family:system-ui;min-width:120px"><div style="font-weight:700;font-size:13px;margin-bottom:4px">${stopName}</div>`
+            if (isSkipped) {
+              html += `<div style="font-size:11px;color:#ef4444;margin-bottom:4px">Skipped — detour in effect</div>`
+            }
+            html += `<div style="display:flex;flex-wrap:wrap;gap:6px">${servedRoutes.map(r => '<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px"><span style="width:8px;height:8px;border-radius:50%;background:'+r.color+';display:inline-block"></span>'+r.name+'</span>').join('')}</div>`
+            if (transferRoutes.length) {
+              html += `<div style="margin-top:6px;font-size:11px;color:#64748b">Transfers: ${transferRoutes.map(r => '<span style="display:inline-flex;align-items:center;gap:3px"><span style="width:6px;height:6px;border-radius:50%;background:'+r.color+';display:inline-block"></span>'+r.name+'</span>').join(' ')}</div>`
+            }
+            html += '</div>'
+            new mapboxgl.Popup({ closeButton: false, offset: 10 }).setLngLat(e.lngLat).setHTML(html).addTo(map.current)
+          })
+          map.current.on('mouseenter', `stops-stop-${route.id}`, () => { map.current.getCanvas().style.cursor = 'pointer' })
+          map.current.on('mouseleave', `stops-stop-${route.id}`, () => { map.current.getCanvas().style.cursor = '' })
         }
         
     })
@@ -160,9 +183,10 @@ export default function Home() {
     useEffect(() => {
       if (!map.current || !busPositions.length || !routes.length) return
 
-      const filteredBuses = activeFilter 
-        ? busPositions.filter(bus => bus.attributes.created_user.includes(activeFilter))
-        : busPositions
+      const resolvedBuses = busPositions.filter(bus => resolveBusRoute(bus.attributes.created_user, busDocs, routes))
+      const filteredBuses = activeFilter
+        ? resolvedBuses.filter(bus => resolveBusRoute(bus.attributes.created_user, busDocs, routes)?.name === activeFilter)
+        : resolvedBuses
 
       const busGeoJSON = {
         type: 'FeatureCollection',
@@ -195,7 +219,7 @@ export default function Home() {
         map.current.getSource('bus-positions').setData(busGeoJSON)
       }
 
-    }, [busPositions, activeFilter])
+    }, [busPositions, activeFilter, busDocs, routes])
 
 
   // EFFECT 6: ROute Filtering on MAP
@@ -236,7 +260,7 @@ export default function Home() {
               .filter(stop => stop.routeId === routeId)
               .sort((a, b) => a.stopNum - b.stopNum)
 
-          const routeBuses = busPositions.filter(bus => bus.attributes.created_user.includes(route.name))
+          const routeBuses = busPositions.filter(bus => resolveBusRoute(bus.attributes.created_user, busDocs, routes)?.id === routeId)
 
           const buses = routeBuses.map(bus => {
               const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
@@ -302,7 +326,7 @@ export default function Home() {
             style={activeFilter === route.name ? { backgroundColor: route.color } : {}}
           >
             <span className="w-2 h-2 rounded-full" style={activeFilter === route.name ? { backgroundColor: '#fff' } : { backgroundColor: route.color }} />
-            {route.name}
+            {route.isSpecial && '⚡ '}{route.name}
           </button>
         ))}
       </div>
