@@ -75,6 +75,24 @@ export default function Home() {
     // console.log("Max Lat:", maxlat)
     // console.log("Max Lng:", maxlng)
     const addLayers = () => {
+      if (!map.current.getSource('selected-stop')) {
+        map.current.addSource('selected-stop', {
+          type: 'geojson',
+          data: { type: 'FeatureCollection', features: [] }
+        })
+        map.current.addLayer({
+          id: 'selected-stop-ring',
+          type: 'circle',
+          source: 'selected-stop',
+          paint: {
+            'circle-radius': 10,
+            'circle-color': 'transparent',
+            'circle-stroke-color': '#3B82F6',
+            'circle-stroke-width': 3,
+            'circle-stroke-opacity': 0.8,
+          }
+        })
+      }
       routes.forEach(route => {
         const routeStops = allStops
           .filter(stop => stop.routeId === route.id)
@@ -160,6 +178,10 @@ export default function Home() {
             }
             html += '</div>'
             new mapboxgl.Popup({ closeButton: false, offset: 10 }).setLngLat(e.lngLat).setHTML(html).addTo(map.current)
+            map.current.getSource('selected-stop').setData({
+              type: 'FeatureCollection',
+              features: [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [e.lngLat.lng, e.lngLat.lat] } }]
+            })
           })
           map.current.on('mouseenter', `stops-stop-${route.id}`, () => { map.current.getCanvas().style.cursor = 'pointer' })
           map.current.on('mouseleave', `stops-stop-${route.id}`, () => { map.current.getCanvas().style.cursor = '' })

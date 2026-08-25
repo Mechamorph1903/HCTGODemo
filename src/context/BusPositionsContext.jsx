@@ -9,14 +9,15 @@ export function BusPositionsProvider({ children }) {
     const fetchBusLive = async () => {
       try {
         const res = await fetch(import.meta.env.VITE_ARCGIS_URL)
+        if (!res.ok) return
         const data = await res.json()
-        setBusPositions(data.features)
+        setBusPositions(data.features || [])
       } catch (err) {
         console.log(err)
       }
     }
     fetchBusLive()
-    const timer = setInterval(fetchBusLive, 5000)
+    const timer = setInterval(fetchBusLive, 15000)
     return () => clearInterval(timer)
   }, [])
 

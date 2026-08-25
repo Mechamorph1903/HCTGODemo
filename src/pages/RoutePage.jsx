@@ -142,6 +142,23 @@ export default function RoutePage({route}){
 
           })
 
+          map.current.addSource('selected-stop', {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: [] }
+          })
+          map.current.addLayer({
+            id: 'selected-stop-ring',
+            type: 'circle',
+            source: 'selected-stop',
+            paint: {
+              'circle-radius': 10,
+              'circle-color': 'transparent',
+              'circle-stroke-color': currRoute.color,
+              'circle-stroke-width': 3,
+              'circle-stroke-opacity': 0.8,
+            }
+          })
+
           map.current.on('click', `stops-stop-${currRoute.id}`, (e) => {
             const stopName = e.features[0].properties.name
             const isSkipped = e.features[0].properties.isSkipped
@@ -161,6 +178,10 @@ export default function RoutePage({route}){
             }
             html += '</div>'
             new mapboxgl.Popup({ closeButton: false, offset: 10 }).setLngLat(e.lngLat).setHTML(html).addTo(map.current)
+            map.current.getSource('selected-stop').setData({
+              type: 'FeatureCollection',
+              features: [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [e.lngLat.lng, e.lngLat.lat] } }]
+            })
           })
           map.current.on('mouseenter', `stops-stop-${currRoute.id}`, () => { map.current.getCanvas().style.cursor = 'pointer' })
           map.current.on('mouseleave', `stops-stop-${currRoute.id}`, () => { map.current.getCanvas().style.cursor = '' })

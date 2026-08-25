@@ -22,8 +22,8 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
     const [destinationSelected, setDestinationSelected] = useState(false)
     const [originSelected, setOriginSelected] = useState(false)
     const [tripOptions, setTripOptions] = useState({ fastest: [], leastWalking: [], fewestTransfers: [] })
-    const [activeObjective, setActiveObjective] = useState("fastest") 
-    const [activeIndex, setActiveIndex] = useState(0)          
+    const [activeObjective, setActiveObjective] = useState("fastest")
+    const [activeIndex, setActiveIndex] = useState(0)
     const selectedOption = tripOptions[activeObjective]?.[activeIndex] ?? null
     const [expandedSeg, setExpandedSeg] = useState(null)
     const [departAt, setDepartAt] = useState(null)
@@ -57,34 +57,105 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
 
     const activeSegment = tripStarted && selectedOption ? selectedOption.segments[activeSegmentIndex] : null
 
-    const myBus = useMemo(() => {
+    const PROXIMITY_THRESHOLD = 0.0003
+
+    const tripRouteBuses = useMemo(() => {
+        if (!tripStarted || !selectedOption || !busPositions.length) return []
+        const tripRouteIds = new Set(
+            selectedOption.segments.filter(s => s.mode !== 'walk').map(s => s.mode)
+        )
+        return busPositions.filter(bus => {
+            const resolved = resolveBusRoute(bus.attributes.created_user, busDocs, routes)
+            return resolved && tripRouteIds.has(resolved.id)
+        }).map(bus => {
+            const resolved = resolveBusRoute(bus.attributes.created_user, busDocs, routes)
+            return { ...bus, routeColor: resolved.color, routeName: resolved.name }
+        })
+    }, [tripStarted, selectedOption, busPositions, busDocs, routes])
+
+    const proximityStatus = useMemo(() => {
+        if (!tripStarted || !liveUserLocation || !selectedOption) return null
+        const seg = selectedOption.segments[activeSegmentIndex]
+        if (!seg) return null
+        const segs = selectedOption.segments
+
+        if (activeSegmentIndex === segs.length - 1) {
+            let targetLat, targetLng
+            if (seg.mode === 'walk') {
+                const walkCoords = seg.geometry?.coordinates
+                if (walkCoords?.length) {
+                    const last = walkCoords[walkCoords.length - 1]
+                    targetLng = last[0]; targetLat = last[1]
+                }
+            } else {
+                const alightStop = stopLookup[nodeKey(seg.mode, seg.alightStop)]
+                if (alightStop) { targetLat = alightStop.coords[0]; targetLng = alightStop.coords[1] }
+            }
+            if (targetLat !== undefined && targetLng !== undefined) {
+                const dist = Math.sqrt((liveUserLocation[0] - targetLat) ** 2 + (liveUserLocation[1] - targetLng) ** 2)
+                if (dist < PROXIMITY_THRESHOLD * 3) return { type: 'arrived', message: "You've arrived!" }
+            }
+        }
+
+        if (seg.mode === 'walk') {
+            return { type: 'walk', message: `Walking to ${seg.to === 'DESTINATION' ? 'your destination' : seg.to}` }
+        }
+
+        const segStops = allStops.filter(s => s.routeId === seg.mode).sort((a, b) => a.stopNum - b.stopNum)
+        const nearestToUser = findNearestStop(liveUserLocation[0], liveUserLocation[1], segStops)
+        if (!nearestToUser) return null
+
+        const alightStop = stopLookup[nodeKey(seg.mode, seg.alightStop)]
+        if (!alightStop) return null
+
+        const nearIdx = segStops.findIndex(s => s.id === nearestToUser.id)
+        const alightIdx = segStops.findIndex(s => s.id === alightStop.id)
+
+        let stopsRemaining = alightIdx - nearIdx
+        if (stopsRemaining < 0) stopsRemaining += segStops.length
+
+        if (stopsRemaining <= 1) return { type: 'getOff', message: 'Get off here!' }
+        if (stopsRemaining <= 3) return { type: 'getOffSoon', message: `Get off in ${stopsRemaining} stops` }
+        return { type: 'riding', message: `${stopsRemaining} stops to ${seg.alightStop}` }
+    }, [tripStarted, liveUserLocation, activeSegmentIndex, selectedOption, stopLookup, allStops])
+
+    const busETA = useMemo(() => {
         if (!activeSegment || activeSegment.mode === 'walk' || !busPositions.length) return null
         const route = routeLookup[activeSegment.mode]
         if (!route) return null
-        const routeBuses = busPositions.filter(bus => resolveBusRoute(bus.attributes.created_user, busDocs, routes)?.id === route.id)
-        if (!routeBuses.length) return null
+
+        const segStops = allStops.filter(s => s.routeId === route.id).sort((a, b) => a.stopNum - b.stopNum)
         const boardStop = stopLookup[nodeKey(activeSegment.mode, activeSegment.boardStop)]
-        if (!boardStop) return null
+        if (!boardStop || !segStops.length) return null
+
+        const routeBuses = busPositions.filter(bus =>
+            resolveBusRoute(bus.attributes.created_user, busDocs, routes)?.id === route.id
+        )
+        if (!routeBuses.length) return null
+
         const nearest = findNearestStop(boardStop.coords[0], boardStop.coords[1],
             routeBuses.map(b => ({ coords: [b.geometry.y, b.geometry.x], _raw: b }))
         )
         if (!nearest) return null
-        return nearest._raw
-    }, [activeSegment, busPositions, routeLookup, stopLookup, busDocs, routes])
 
-    const PROXIMITY_THRESHOLD = 0.0003
-    
-    
+        const nearestStopToBus = findNearestStop(nearest._raw.geometry.y, nearest._raw.geometry.x, segStops)
+        if (!nearestStopToBus) return null
+
+        let minutesAway = boardStop.minuteOffset - nearestStopToBus.minuteOffset
+        if (minutesAway <= 0) minutesAway += route.frequency[0]
+        return Math.max(1, Math.round(minutesAway))
+    }, [activeSegment, busPositions, routeLookup, stopLookup, allStops, busDocs, routes])
+
     const debouncedOrigin = useDebounce(origin, 400)
     const debouncedDestination = useDebounce(destination, 400)
 
     const handleSuggestionClick = async (suggestion) => {
          if (activeInput === 'destination') {
             setDestinationSelected(true)
-            setDestination(suggestion.name)      // show name in input
-            setSuggestions([])                    // close dropdown
-            const coords = await retrievePlace(suggestion.mapbox_id)  // get lat/lng
-            setDestinationCoords([coords[1], coords[0]])          // store coords for routing
+            setDestination(suggestion.name)
+            setSuggestions([])
+            const coords = await retrievePlace(suggestion.mapbox_id)
+            setDestinationCoords([coords[1], coords[0]])
         } else {
             setOriginSelected(true)
             setOrigin(suggestion.name)
@@ -92,91 +163,60 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
             const coords = await retrievePlace(suggestion.mapbox_id)
             setOriginCoords([coords[1], coords[0]])
         }
-
     }
+
     const findShortestPath = (tripGraph, startNode, nowMin, config) => {
         const { clock, parents, cost, waitAt } = djisktras(tripGraph, startNode, nowMin, stopLookup, routeLookup, config)
-
-
-
         if (clock["DESTINATION"] === Infinity) return {bestPath: null, clock: null, cost: null, waitAt: null}
-
         const bestPath = getPath(parents, "DESTINATION")
-
         return { bestPath ,clock, cost, waitAt  }
     }
 
-
-
-
     const planOne = async (tripGraph, nowMin, effectiveOrigin, config, meta) =>{
         const { bestPath, clock, waitAt } = findShortestPath(tripGraph, "ORIGIN", nowMin, config)
-
         if (bestPath === null) return { bestPath: null, option: null }
-
         const segments = pathToSegments(bestPath)
         const option = await buildOption(segments, clock, nowMin, effectiveOrigin, destinationCoords, stopLookup, routeLookup, waitAt, meta)
-
         return {bestPath, option}
-        
     }
 
     const findKShortestPaths = async (tripGraph, effectiveOrigin, nowMin, config, k = 3) => {
         const first = findShortestPath(tripGraph, "ORIGIN", nowMin, config)
         if (first.bestPath === null) return []
-
-        const A = [first]   // accepted paths so far, each: { bestPath, clock, cost, waitAt }
-
+        const A = [first]
         while (A.length < k) {
             const prevPath = A[A.length - 1].bestPath
-
-            // segment boundaries only — where the outgoing mode changes from the
-            // previous node's outgoing mode. Index 0 (ORIGIN) always counts.
             const boundaryIndices = [0]
             for (let i = 1; i < prevPath.length - 1; i++) {
                 if (prevPath[i].routeId !== prevPath[i - 1].routeId) boundaryIndices.push(i)
             }
-
             const candidates = []
-
             for (const i of boundaryIndices) {
                 const spurNode = prevPath[i]
                 const spurKey = nodeKeyOf(spurNode)
                 const rootPath = prevPath.slice(0, i + 1)
-
                 const blockedEdges = edgeBlocker(rootPath, A.map(p => p.bestPath))
                 const spurConfig = { ...config, blockedEdges }
-
                 const nowAtSpur = A[A.length - 1].clock[spurKey]
                 const spurResult = findShortestPath(tripGraph, spurKey, nowAtSpur, spurConfig)
                 if (spurResult.bestPath === null) continue
-
                 const fullPath = rootPath.slice(0, -1).concat(spurResult.bestPath)
                 const mergedClock = { ...A[A.length - 1].clock, ...spurResult.clock }
                 const mergedWaitAt = { ...A[A.length - 1].waitAt, ...spurResult.waitAt }
-
                 const spurBaseCost = A[A.length - 1].cost[spurKey]
                 const adjustedSpurCost = {}
-                for (const key in spurResult.cost) {
-                    adjustedSpurCost[key] = spurBaseCost + spurResult.cost[key]
-                }
+                for (const key in spurResult.cost) { adjustedSpurCost[key] = spurBaseCost + spurResult.cost[key] }
                 const mergedCost = { ...A[A.length - 1].cost, ...adjustedSpurCost }
                 const totalCost = mergedCost["DESTINATION"]
-
                 candidates.push({ bestPath: fullPath, clock: mergedClock, cost: mergedCost, waitAt: mergedWaitAt, totalCost })
             }
-
             const pathSignature = (path) => path.map(nodeKeyOf).join("|")
             const seen = new Set(A.map(p => pathSignature(p.bestPath)))
             const fresh = candidates.filter(c => !seen.has(pathSignature(c.bestPath)))
-
             if (fresh.length === 0) break
-
             fresh.sort((a, b) => a.totalCost - b.totalCost)
             A.push(fresh[0])
         }
-
-        // format every accepted path into a real display-ready option
         const options = []
         for (let i = 0; i < A.length; i++) {
             const segments = pathToSegments(A[i].bestPath)
@@ -187,14 +227,12 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
             )
             options.push(option)
         }
-
         return options
     }
 
     const planTrip = async () => {
         const effectiveOrigin = originCoords || userLocation
         if (!effectiveOrigin || !destinationCoords.length || !allStops.length || !Object.keys(adjacencyList).length) return
-
         const selectedDate = departAt || new Date()
         if ([0, 6].includes(selectedDate.getDay())) {
             setTripOptions({ fastest: [], leastWalking: [], fewestTransfers: [] })
@@ -202,13 +240,11 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         }
         let nowMin = selectedDate.getHours() * 60 + selectedDate.getMinutes()
         const tripGraph = buildTripGraph(adjacencyList, effectiveOrigin, destinationCoords, allStops)
-
         const [fastestOptions, leastWalkingResult, fewestTransfersResult] = await Promise.all([
             findKShortestPaths(tripGraph, effectiveOrigin, nowMin, { walkPenalty: 2.5, transferPenalty: 0 }, 3),
             planOne(tripGraph, nowMin, effectiveOrigin, { walkPenalty: 10, transferPenalty: 0 }, { id: "leastWalking", label: "Least walking" }),
             planOne(tripGraph, nowMin, effectiveOrigin, { walkPenalty: 2.5, transferPenalty: 20 }, { id: "fewestTransfers", label: "Fewest transfers" }),
         ])
-
         setTripOptions({
             fastest: fastestOptions,
             leastWalking: leastWalkingResult.option ? [leastWalkingResult.option] : [],
@@ -217,59 +253,38 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         setActiveObjective("fastest")
         setActiveIndex(0)
     }
-    
 
-    //Users Current Location for start point (default)
     useEffect(() => {
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-            setUserLocation([position.coords.latitude, position.coords.longitude])
-            },
-            (error) => {
-            console.log('Location denied:', error)
-            // fallback to Hattiesburg center
-            setUserLocation([31.3271, -89.2903])
-            }
+            (position) => { setUserLocation([position.coords.latitude, position.coords.longitude]) },
+            (error) => { console.log('Location denied:', error); setUserLocation([31.3271, -89.2903]) }
         )
     }, [])
 
-    //getting suggestions for points from mapbox
     useEffect(() => {
         if (!debouncedOrigin || originSelected) {
             setOriginSelected(false)
             if (!debouncedOrigin) setOriginCoords(null)
             return
         }
-
         geocodeAddress(debouncedOrigin).then(res => setSuggestions(res))
-
     }, [debouncedOrigin])
-    
+
     useEffect(() => {
-        //when user selects a suggestion/ it sets destination selected to true preventing geocode from firing again
         if (!debouncedDestination || destinationSelected) {
             setDestinationSelected(false)
             return
-        } 
-
+        }
         geocodeAddress(debouncedDestination).then(res => setSuggestions(res))
-
-
     }, [debouncedDestination])
 
-    //djikstras for routing
-    useEffect(() => {
-        planTrip()
-    }, [originCoords, destinationCoords, userLocation, adjacencyList, departAt])
+    useEffect(() => { planTrip() }, [originCoords, destinationCoords, userLocation, adjacencyList, departAt])
 
-
-    // tick every 30s so countdowns re-render
     useEffect(() => {
         const t = setInterval(() => setNowTick(Date.now()), 30000)
         return () => clearInterval(t)
     }, [])
 
-    // re-plan if the first bus has departed
     useEffect(() => {
         if (departAt !== null || !selectedOption) return
         const firstBus = selectedOption.segments.find(s => s.mode !== "walk")
@@ -278,7 +293,6 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         if (nowM > firstBus.departsAtMin) planTrip()
     }, [nowTick])
 
-    //trip drawing
     useEffect(() => {
         if (!map.current || !selectedOption) return
         if (!map.current.isStyleLoaded()) return
@@ -295,29 +309,16 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
             const coordinates = seg.mode === "walk" ? seg.geometry.coordinates : seg.coords
 
             const paint = seg.mode === "walk" ? {
-                'line-color': '#64748b',
-                'line-width': 3,
-                'line-dasharray': [2, 2]
-                } : {
-                'line-color': routeLookup[seg.mode].color,
-                'line-width': 5
-                }
+                'line-color': '#64748b', 'line-width': 3, 'line-dasharray': [2, 2]
+            } : {
+                'line-color': routeLookup[seg.mode].color, 'line-width': 5
+            }
 
             map.current.addSource(id, {
                 type: 'geojson',
-                data: {
-                    type: 'Feature',
-                    geometry: { type: 'LineString', coordinates }
-                }
+                data: { type: 'Feature', geometry: { type: 'LineString', coordinates } }
             })
-
-            map.current.addLayer({
-                id,
-                type: 'line',
-                source: id,
-                paint
-               
-            })
+            map.current.addLayer({ id, type: 'line', source: id, paint })
         })
 
         const allCoords = selectedOption.segments.flatMap(seg =>
@@ -325,53 +326,37 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         )
         const lngs = allCoords.map(c => c[0])
         const lats = allCoords.map(c => c[1])
-
         map.current.fitBounds(
             [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
             { padding: 60 }
         )
     }, [selectedOption])
 
-
-
-    //map creation  
     const map = useRef(null)
     const mapContainer = useRef(null)
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
     useEffect(() => {
         if (map.current) return
-            map.current = new mapboxgl.Map({
+        map.current = new mapboxgl.Map({
             container: mapContainer.current,
             style: 'mapbox://styles/mapbox/streets-v12',
             center: userLocation ? [userLocation[1], userLocation[0]] : [-89.2903, 31.3271],
             zoom: 12
-            })
-
-            map.current.addControl(new mapboxgl.GeolocateControl({
-                positionOptions: { enableHighAccuracy: true },
-                trackUserLocation: true,
-                showUserHeading: true
-            }))
-            return () => { map.current?.remove(); map.current = null }
-        }, [])
-
+        })
+        map.current.addControl(new mapboxgl.GeolocateControl({
+            positionOptions: { enableHighAccuracy: true },
+            trackUserLocation: true,
+            showUserHeading: true
+        }))
+        return () => { map.current?.remove(); map.current = null }
+    }, [])
 
     useEffect(() => {
         if (!map.current || !userLocation) return
-        map.current.flyTo({
-            center: [userLocation[1], userLocation[0]],
-            zoom: 14
-        })
+        map.current.flyTo({ center: [userLocation[1], userLocation[0]], zoom: 14 })
     }, [userLocation])
 
-   
-  
-    
-
-
-
-    //RT Navigation
     useEffect(() => {
         if (!tripStarted) return
         const watchId = navigator.geolocation.watchPosition(
@@ -382,22 +367,29 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         return () => navigator.geolocation.clearWatch(watchId)
     }, [tripStarted])
 
-    //when trip starts, fit camera to trip bounds and restrict panning
     useEffect(() => {
         if (!map.current) return
+        setTimeout(() => map.current?.resize(), 50)
+
         if (!tripStarted) {
             map.current.setMaxBounds(null)
+            if (map.current.getLayer('trip-buses-dot')) map.current.removeLayer('trip-buses-dot')
+            if (map.current.getLayer('trip-buses-ring')) map.current.removeLayer('trip-buses-ring')
+            if (map.current.getSource('trip-buses')) map.current.removeSource('trip-buses')
+            for (let i = 0; i < 20; i++) {
+                const id = `trip-seg-${i}`
+                if (map.current.getLayer(id)) {
+                    map.current.setPaintProperty(id, 'line-opacity', 1)
+                }
+            }
             return
         }
         if (!selectedOption) return
         const allCoords = selectedOption.segments.flatMap(seg =>
             seg.mode === "walk" ? seg.geometry?.coordinates ?? [] : seg.coords ?? []
         )
-        if (liveUserLocation) {
-            allCoords.push([liveUserLocation[1], liveUserLocation[0]])
-        } else if (userLocation) {
-            allCoords.push([userLocation[1], userLocation[0]])
-        }
+        if (liveUserLocation) allCoords.push([liveUserLocation[1], liveUserLocation[0]])
+        else if (userLocation) allCoords.push([userLocation[1], userLocation[0]])
         if (!allCoords.length) return
         const lngs = allCoords.map(c => c[0])
         const lats = allCoords.map(c => c[1])
@@ -412,7 +404,6 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         ])
     }, [tripStarted])
 
-    // Auto-advance to next segment when near endpoint
     useEffect(() => {
         if (!tripStarted || !liveUserLocation || !selectedOption) return
         const seg = selectedOption.segments[activeSegmentIndex]
@@ -438,37 +429,49 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         }
     }, [liveUserLocation, tripStarted, activeSegmentIndex, selectedOption])
 
-    // Draw "your bus" marker on map
     useEffect(() => {
-        if (!map.current || !map.current.isStyleLoaded()) return
-        const busGeoJSON = myBus ? {
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [myBus.geometry.x, myBus.geometry.y] },
-            properties: {}
-        } : { type: 'Feature', geometry: { type: 'Point', coordinates: [0, 0] }, properties: {} }
+        if (!map.current || !tripStarted || !selectedOption) return
+        if (!map.current.isStyleLoaded()) return
 
-        if (!map.current.getSource('my-bus')) {
-            map.current.addSource('my-bus', { type: 'geojson', data: busGeoJSON })
-            map.current.addLayer({
-                id: 'my-bus-ring',
-                type: 'circle',
-                source: 'my-bus',
-                paint: { 'circle-radius': 16, 'circle-color': 'rgba(59,130,246,0.2)', 'circle-stroke-width': 0 }
-            })
-            map.current.addLayer({
-                id: 'my-bus-dot',
-                type: 'circle',
-                source: 'my-bus',
-                paint: { 'circle-radius': 9, 'circle-color': '#3B82F6', 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 3 }
-            })
-        } else {
-            map.current.getSource('my-bus').setData(busGeoJSON)
+        selectedOption.segments.forEach((seg, i) => {
+            const id = `trip-seg-${i}`
+            if (!map.current.getLayer(id)) return
+            const isActive = i === activeSegmentIndex
+            map.current.setPaintProperty(id, 'line-width', isActive ? (seg.mode === 'walk' ? 5 : 7) : (seg.mode === 'walk' ? 2 : 3))
+            map.current.setPaintProperty(id, 'line-opacity', isActive ? 1 : 0.3)
+        })
+    }, [tripStarted, activeSegmentIndex, selectedOption])
+
+    useEffect(() => {
+        if (!map.current || !tripStarted || !map.current.isStyleLoaded()) return
+
+        const busGeoJSON = {
+            type: 'FeatureCollection',
+            features: tripRouteBuses.map(bus => ({
+                type: 'Feature',
+                properties: { color: bus.routeColor },
+                geometry: { type: 'Point', coordinates: [bus.geometry.x, bus.geometry.y] }
+            }))
         }
 
-        const vis = myBus ? 'visible' : 'none'
-        if (map.current.getLayer('my-bus-ring')) map.current.setLayoutProperty('my-bus-ring', 'visibility', vis)
-        if (map.current.getLayer('my-bus-dot')) map.current.setLayoutProperty('my-bus-dot', 'visibility', vis)
-    }, [myBus])
+        if (!map.current.getSource('trip-buses')) {
+            map.current.addSource('trip-buses', { type: 'geojson', data: busGeoJSON })
+            map.current.addLayer({
+                id: 'trip-buses-ring',
+                type: 'circle',
+                source: 'trip-buses',
+                paint: { 'circle-radius': 14, 'circle-color': 'rgba(59,130,246,0.15)', 'circle-stroke-width': 0 }
+            })
+            map.current.addLayer({
+                id: 'trip-buses-dot',
+                type: 'circle',
+                source: 'trip-buses',
+                paint: { 'circle-radius': 8, 'circle-color': ['get', 'color'], 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 }
+            })
+        } else {
+            map.current.getSource('trip-buses').setData(busGeoJSON)
+        }
+    }, [tripStarted, tripRouteBuses])
 
     return(
         <div className="h-full text-black dark:text-white text-xl font-sans antialiased mx-auto shadow-xl p-5">
@@ -482,130 +485,115 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                 </div>
             </div>
 
-            {/* searchBars */}
-            <div className="flex flex-col items-center">
-                <div className='px-5 pt-4 pb-2 bg-white dark:bg-slate-900 '>
-                    <label htmlFor="origin" className='block mb-1.5 text-sm font-medium text-slate-500 dark:text-slate-400'>From: </label>
-                    <div className='relative flex items-center mb-2'>
-                    <div className="absolute left-4 text-slate-400 dark:text-slate-500">
-                        <FontAwesomeIcon icon="fa-solid fa-map-pin" />
-                    </div>
-                    <input
-                        type="text"
-                        name="origin"
-                        className='w-full pl-11 pr-24 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium text-base rounded-2xl border border-transparent focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-blue-500/50 transition-all shadow-inner'
-                        value={origin}
-                        placeholder={userLocation ? "Current Location" : "Getting location..."}
-                        onChange={(e) => setOrigin(e.target.value)}
-                        onFocus={(e) => {
-                            setActiveInput("origin")
-                        }}
-                        disabled={tripStarted}
-                    />
-                    </div>
-                    {suggestions.length > 0 && activeInput == "origin" && (
-                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg mt-1">
-                            {suggestions.map((suggestion, i) => (
-                            <div
-                                key={i}
-                                onClick={() => handleSuggestionClick(suggestion)}
-                                className="p-3 border-b border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
-                            >
-                                <p className="font-medium text-sm">{suggestion.name}</p>
-                                <p className="text-xs text-slate-400 dark:text-slate-500">{suggestion.full_address}</p>
+            {!tripStarted && (
+                <>
+                    <div className="flex flex-col items-center">
+                        <div className='px-5 pt-4 pb-2 bg-white dark:bg-slate-900 '>
+                            <label htmlFor="origin" className='block mb-1.5 text-sm font-medium text-slate-500 dark:text-slate-400'>From: </label>
+                            <div className='relative flex items-center mb-2'>
+                                <div className="absolute left-4 text-slate-400 dark:text-slate-500">
+                                    <FontAwesomeIcon icon="fa-solid fa-map-pin" />
+                                </div>
+                                <input
+                                    type="text"
+                                    name="origin"
+                                    className='w-full pl-11 pr-24 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium text-base rounded-2xl border border-transparent focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-blue-500/50 transition-all shadow-inner'
+                                    value={origin}
+                                    placeholder={userLocation ? "Current Location" : "Getting location..."}
+                                    onChange={(e) => setOrigin(e.target.value)}
+                                    onFocus={() => setActiveInput("origin")}
+                                />
                             </div>
-                            ))}
+                            {suggestions.length > 0 && activeInput == "origin" && (
+                                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg mt-1">
+                                    {suggestions.map((suggestion, i) => (
+                                        <div key={i} onClick={() => handleSuggestionClick(suggestion)} className="p-3 border-b border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700">
+                                            <p className="font-medium text-sm">{suggestion.name}</p>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500">{suggestion.full_address}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
 
-                <div className='py-1.5 text-slate-400 dark:text-slate-500'>
-                    {/* Arrow */}
-                    <FontAwesomeIcon icon="fa-solid fa-arrows-up-down" />
-                </div>
+                        <div className='py-1.5 text-slate-400 dark:text-slate-500'>
+                            <FontAwesomeIcon icon="fa-solid fa-arrows-up-down" />
+                        </div>
 
-                <div className='px-5 pt-4 pb-2 bg-white dark:bg-slate-900 '>
-                    <label htmlFor="destination" className='block mb-1.5 text-sm font-medium text-slate-500 dark:text-slate-400'>To: </label>
-                    <div className='relative flex items-center mb-2'>
-                    <div className="absolute left-4 text-slate-400 dark:text-slate-500">
-                        <FontAwesomeIcon icon="fa-solid fa-magnifying-glass" className="text-sm" />
-                    </div>
-
-                    <input
-                        type="text"
-                        name="destination"
-                        className='w-full pl-11 pr-24 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium text-base rounded-2xl border border-transparent focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-blue-500/50 transition-all shadow-inner'
-                        value={destination}
-                        placeholder='Search destinations, lines...'
-                        onChange={(e) => setDestination(e.target.value)}
-                        onFocus={(e) => {
-                            setActiveInput("destination")
-                        }}
-                        disabled={tripStarted}
-                    />
-                    </div>
-                    {suggestions.length > 0 && activeInput == "destination" && (
-                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg mt-1">
-                            {suggestions.map((suggestion, i) => (
-                            <div
-                                key={i}
-                                onClick={() => handleSuggestionClick(suggestion)}
-                                className="p-3 border-b border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
-                            >
-                                <p className="font-medium text-sm">{suggestion.name}</p>
-                                <p className="text-xs text-slate-400 dark:text-slate-500">{suggestion.full_address}</p>
+                        <div className='px-5 pt-4 pb-2 bg-white dark:bg-slate-900 '>
+                            <label htmlFor="destination" className='block mb-1.5 text-sm font-medium text-slate-500 dark:text-slate-400'>To: </label>
+                            <div className='relative flex items-center mb-2'>
+                                <div className="absolute left-4 text-slate-400 dark:text-slate-500">
+                                    <FontAwesomeIcon icon="fa-solid fa-magnifying-glass" className="text-sm" />
+                                </div>
+                                <input
+                                    type="text"
+                                    name="destination"
+                                    className='w-full pl-11 pr-24 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium text-base rounded-2xl border border-transparent focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-blue-500/50 transition-all shadow-inner'
+                                    value={destination}
+                                    placeholder='Search destinations, lines...'
+                                    onChange={(e) => setDestination(e.target.value)}
+                                    onFocus={() => setActiveInput("destination")}
+                                />
                             </div>
-                            ))}
+                            {suggestions.length > 0 && activeInput == "destination" && (
+                                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg mt-1">
+                                    {suggestions.map((suggestion, i) => (
+                                        <div key={i} onClick={() => handleSuggestionClick(suggestion)} className="p-3 border-b border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700">
+                                            <p className="font-medium text-sm">{suggestion.name}</p>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500">{suggestion.full_address}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
-            </div>
-            {/* ArriveType */}
-            <button
-                onClick={() => !tripStarted && setShowTimePicker(!showTimePicker)}
-                disabled={tripStarted}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 text-sm font-medium mt-3 ${tripStarted ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-                <FontAwesomeIcon icon="fa-solid fa-clock" className="text-slate-400 dark:text-slate-500" />
-                {departAt === null ? "Leave now" : `${dayNames[departAt.getDay()]} at ${minutesToClockString(departAt.getHours() * 60 + departAt.getMinutes())}`}
-                <FontAwesomeIcon icon="fa-solid fa-chevron-down" className="text-xs text-slate-400 dark:text-slate-500" />
-            </button>
+                    </div>
 
-            {showTimePicker && (
-                <div className="mt-2 p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
                     <button
-                        onClick={() => { setDepartAt(null); setShowTimePicker(false) }}
-                        className={`text-left text-sm font-medium ${departAt === null ? "text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-300"}`}
+                        onClick={() => setShowTimePicker(!showTimePicker)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 text-sm font-medium mt-3"
                     >
-                        Leave now
+                        <FontAwesomeIcon icon="fa-solid fa-clock" className="text-slate-400 dark:text-slate-500" />
+                        {departAt === null ? "Leave now" : `${dayNames[departAt.getDay()]} at ${minutesToClockString(departAt.getHours() * 60 + departAt.getMinutes())}`}
+                        <FontAwesomeIcon icon="fa-solid fa-chevron-down" className="text-xs text-slate-400 dark:text-slate-500" />
                     </button>
-                    <div className="flex items-center gap-3">
-                        <span className="text-sm text-slate-700 dark:text-slate-300">Depart</span>
-                        <input
-                            type="datetime-local"
-                            value={departAt ? dateToLocalInput(departAt) : ''}
-                            onChange={(e) => {
-                                if (!e.target.value) return
-                                setDepartAt(new Date(e.target.value))
-                            }}
-                            className="bg-slate-100 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm"
-                        />
-                    </div>
-                </div>
+
+                    {showTimePicker && (
+                        <div className="mt-2 p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
+                            <button
+                                onClick={() => { setDepartAt(null); setShowTimePicker(false) }}
+                                className={`text-left text-sm font-medium ${departAt === null ? "text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-300"}`}
+                            >
+                                Leave now
+                            </button>
+                            <div className="flex items-center gap-3">
+                                <span className="text-sm text-slate-700 dark:text-slate-300">Depart</span>
+                                <input
+                                    type="datetime-local"
+                                    value={departAt ? dateToLocalInput(departAt) : ''}
+                                    onChange={(e) => {
+                                        if (!e.target.value) return
+                                        setDepartAt(new Date(e.target.value))
+                                    }}
+                                    className="bg-slate-100 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {isWeekend && (
+                        <div className="mt-4 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 text-center">
+                            <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">No bus service on weekends</p>
+                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Service runs Monday through Friday</p>
+                        </div>
+                    )}
+                </>
             )}
 
-            {isWeekend && (
-                <div className="mt-4 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 text-center">
-                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">No bus service on weekends</p>
-                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Service runs Monday through Friday</p>
-                </div>
-            )}
+            <div id="Map" ref={mapContainer} className={`w-full overflow-hidden rounded-xl mt-4 transition-all ${tripStarted ? 'h-[70vh]' : 'h-128'}`} />
 
-            {/* Map */}
-            <div id="Map" ref={mapContainer} className='h-128 w-full overflow-hidden rounded-xl mt-4' />
-
-            {/* Options */}
-                {/* Objective dropdown */}
+            {!tripStarted && (
+                <>
                     {(tripOptions.fastest.length > 0 || tripOptions.leastWalking.length > 0 || tripOptions.fewestTransfers.length > 0) && (
                         <select
                             value={activeObjective}
@@ -614,8 +602,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                 setActiveIndex(0)
                                 setExpandedSeg(null)
                             }}
-                            disabled={tripStarted}
-                            className={`bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm font-medium mt-4 ${tripStarted ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className="bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm font-medium mt-4"
                         >
                             <option value="fastest">Fastest</option>
                             <option value="leastWalking">Least walking</option>
@@ -623,33 +610,26 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                         </select>
                     )}
 
-                    {/* Pills for whichever objective is active */}
                     {tripOptions[activeObjective]?.length > 0 ? (
                         <div className="flex gap-2 mt-3 overflow-x-auto">
                             {tripOptions[activeObjective].map((opt, i) => {
-                                const routes = [...new Set(opt.segments.filter(s => s.mode !== "walk").map(s => s.mode))]
-                                    .map(m => routeLookup[m]?.name ?? m)   // adjust ?? fallback to whatever field your route objects actually use
-
+                                const routeNames = [...new Set(opt.segments.filter(s => s.mode !== "walk").map(s => s.mode))]
+                                    .map(m => routeLookup[m]?.name ?? m)
                                 return (
                                     <button
                                         key={opt.id ?? i}
-                                        onClick={() => {
-                                            if (tripStarted) return
-                                            setActiveIndex(i)
-                                            setExpandedSeg(null)
-                                        }}
-                                        disabled={tripStarted}
+                                        onClick={() => { setActiveIndex(i); setExpandedSeg(null) }}
                                         className={`flex flex-col items-start px-4 py-3 rounded-2xl border shrink-0 transition-colors ${
                                             activeIndex === i
                                                 ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white'
                                                 : 'bg-white text-slate-900 border-slate-200 dark:bg-slate-800 dark:text-white dark:border-slate-700'
-                                        } ${tripStarted ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        }`}
                                     >
                                         <span className="text-xs font-medium opacity-70">
                                             {tripOptions[activeObjective].length > 1 ? `Route ${i + 1}` : opt.label}
                                         </span>
                                         <span className="text-lg font-bold leading-tight">{opt.totalMin} min</span>
-                                        <span className="text-xs opacity-70">{routes.length ? routes.join(", ") : "Walk only"}</span>
+                                        <span className="text-xs opacity-70">{routeNames.length ? routeNames.join(", ") : "Walk only"}</span>
                                     </button>
                                 )
                             })}
@@ -664,7 +644,6 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                         <div className="mt-6 flex flex-col gap-3">
                             {selectedOption.segments.map((seg, i) => (
                                 <div key={i} className="flex flex-col">
-
                                     {seg.mode === "walk" ? (
                                         <>
                                             <button
@@ -683,7 +662,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                                     {seg.steps.map((step, j) => (
                                                         <li key={j} className="text-xs text-slate-500 dark:text-slate-400">
                                                             {step.instruction}
-                                                            {step.distance > 0 && <span className="text-slate-300 dark:text-slate-600"> · {step.distance}m</span>}
+                                                            {step.distance > 0 && <span className="text-slate-300 dark:text-slate-600"> &middot; {step.distance}m</span>}
                                                         </li>
                                                     ))}
                                                 </ol>
@@ -714,7 +693,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                                 <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: routeLookup[seg.mode]?.color }} />
                                                 <div className="flex-1">
                                                     <p className="text-sm font-medium">
-                                                        {routeLookup[seg.mode]?.name} Route · {seg.minutes} min
+                                                        {routeLookup[seg.mode]?.name} Route &middot; {seg.minutes} min
                                                     </p>
                                                     <p className="text-xs text-slate-400 dark:text-slate-500">
                                                         {seg.stops.length - 1} stops to {seg.alightStop}
@@ -727,8 +706,8 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                                     {seg.stops.map((s, j) => (
                                                         <li key={j} className="text-xs text-slate-500 dark:text-slate-400">
                                                             {s.name}
-                                                            {j === 0 && <span className="text-slate-300 dark:text-slate-600"> · board here</span>}
-                                                            {j === seg.stops.length - 1 && <span className="text-slate-300 dark:text-slate-600"> · get off</span>}
+                                                            {j === 0 && <span className="text-slate-300 dark:text-slate-600"> &middot; board here</span>}
+                                                            {j === seg.stops.length - 1 && <span className="text-slate-300 dark:text-slate-600"> &middot; get off</span>}
                                                         </li>
                                                     ))}
                                                 </ol>
@@ -740,7 +719,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                         </div>
                     )}
 
-                    {selectedOption && !tripStarted && (
+                    {selectedOption && (
                         <button
                             onClick={() => { setTripStarted(true); setActiveSegmentIndex(0) }}
                             className="mt-4 w-full py-3 rounded-2xl bg-blue-600 text-white font-semibold text-base"
@@ -748,30 +727,79 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                             Start Trip
                         </button>
                     )}
+                </>
+            )}
 
-                    {tripStarted && selectedOption && (
-                        <>
-                            <div className="mt-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
-                                <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                                    {activeSegment?.mode === 'walk'
-                                        ? `Walking to ${activeSegment.to === 'DESTINATION' ? 'your destination' : activeSegment.to}`
-                                        : `Riding ${routeLookup[activeSegment?.mode]?.name ?? ''} Route → alight at ${activeSegment?.alightStop ?? ''}`
-                                    }
-                                </p>
-                                <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">
-                                    Step {activeSegmentIndex + 1} of {selectedOption.segments.length}
-                                </p>
+            {tripStarted && selectedOption && (
+                <div className="mt-4 flex flex-col gap-3">
+                    <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+                                Step {activeSegmentIndex + 1} of {selectedOption.segments.length}
+                            </span>
+                            {proximityStatus?.type === 'arrived' && (
+                                <span className="px-2.5 py-0.5 text-xs font-bold bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 rounded-full">
+                                    Arrived
+                                </span>
+                            )}
+                        </div>
+
+                        {activeSegment?.mode === 'walk' ? (
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                                    <FontAwesomeIcon icon="fa-solid fa-person-walking" />
+                                </div>
+                                <div>
+                                    <p className="text-base font-semibold">Walk to {activeSegment.to === 'DESTINATION' ? 'your destination' : activeSegment.to}</p>
+                                    <p className="text-sm text-slate-400 dark:text-slate-500">{activeSegment.minutes} min</p>
+                                </div>
                             </div>
-                            <button
-                                onClick={() => { setTripStarted(false); setActiveSegmentIndex(0) }}
-                                className="mt-3 w-full py-3 rounded-2xl bg-red-500 text-white font-semibold text-base"
-                            >
-                                End Trip
-                            </button>
-                        </>
-                    )}
+                        ) : (
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: routeLookup[activeSegment?.mode]?.color + '20' }}>
+                                    <span className="h-4 w-4 rounded-full" style={{ backgroundColor: routeLookup[activeSegment?.mode]?.color }} />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-base font-semibold">{routeLookup[activeSegment?.mode]?.name} Route</p>
+                                    <p className="text-sm text-slate-400 dark:text-slate-500">
+                                        {activeSegment?.stops?.length - 1} stops to {activeSegment?.alightStop} &middot; {activeSegment?.minutes} min
+                                    </p>
+                                    {busETA && (
+                                        <p className="text-sm text-blue-500 dark:text-blue-400 font-medium mt-0.5">
+                                            <FontAwesomeIcon icon="fa-solid fa-bus" className="mr-1.5 text-xs" />
+                                            Bus ~{busETA} min away
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
+                        {proximityStatus && ['getOff', 'getOffSoon', 'arrived'].includes(proximityStatus.type) && (
+                            <div className={`mt-3 p-3 rounded-xl text-center font-bold text-sm ${
+                                proximityStatus.type === 'arrived' ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' :
+                                proximityStatus.type === 'getOff' ? 'bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800' :
+                                'bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                            }`}>
+                                {proximityStatus.message}
+                            </div>
+                        )}
 
+                        {proximityStatus?.type === 'riding' && (
+                            <p className="mt-2 text-sm text-slate-400 dark:text-slate-500">
+                                <FontAwesomeIcon icon="fa-solid fa-location-dot" className="mr-1.5 text-xs" />
+                                {proximityStatus.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <button
+                        onClick={() => { setTripStarted(false); setActiveSegmentIndex(0); setLiveUserLocation(null) }}
+                        className="w-full py-3 rounded-2xl bg-red-500 text-white font-semibold text-base"
+                    >
+                        End Trip
+                    </button>
+                </div>
+            )}
         </div>
     )
 }

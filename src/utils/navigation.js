@@ -563,3 +563,11 @@ export const resolveBusRoute = (trackerName, busDocs, routes) => {
     if (assigned) return assigned
     return routes.find(r => r.id === busDoc.homeRouteId) || null
 }
+
+export const estimateBusETA = (busPosition, boardingStop, route, routeStops) => {
+    const nearest = findNearestStop(busPosition.geometry.y, busPosition.geometry.x, routeStops)
+    if (!nearest) return null
+    let minutesAway = boardingStop.minuteOffset - nearest.minuteOffset
+    if (minutesAway <= 0) minutesAway += route.frequency[0]
+    return Math.max(1, Math.round(minutesAway))
+}
