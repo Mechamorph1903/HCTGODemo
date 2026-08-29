@@ -8,7 +8,19 @@ export default function SettingsPage() {
   const { routes, loading } = useTransitData()
   const { preference, setTheme } = useThemeContext()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const {profile, toggleFavorite } = useAuthContext()
+  const [deleting, setDeleting] = useState(false)
+  const {profile, toggleFavorite, deleteProfile } = useAuthContext()
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    try {
+      await deleteProfile()
+      setShowDeleteConfirm(false)
+    } catch (err) {
+      console.error("Failed to delete account:", err)
+    }
+    setDeleting(false)
+  }
 
   if (loading) return <div className="flex items-center justify-center p-10"><div className="loading-spinner" /></div>;
 
@@ -77,7 +89,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Danger Zone - delete button doesn't actually delete anything yet, just shows the confirm step */}
+        {/* Danger Zone */}
         <div>
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Account</p>
           {!showDeleteConfirm ? (
@@ -94,12 +106,17 @@ export default function SettingsPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium"
+                  disabled={deleting}
+                  className="flex-1 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium disabled:opacity-50"
                 >
                   Cancel
                 </button>
-                <button className="flex-1 py-2 rounded-lg bg-red-500 text-white text-sm font-medium">
-                  Delete
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex-1 py-2 rounded-lg bg-red-500 text-white text-sm font-medium disabled:opacity-50"
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>

@@ -9,6 +9,7 @@ import { useLiveBuses } from '../context/BusPositionsContext.jsx'
 import { useTransitData } from '../context/TransitDataContext.jsx'
 import { useAuthContext } from '../context/AuthContext.jsx'
 import { findNearestStops, scheduleAlignment, buildLineCoords, resolveBusRoute } from '../utils/navigation.js'
+import { FitBoundsControl } from '../utils/mapControls.js'
 
 export default function Home() {
   const { routes: rawRoutes, allStops, busDocs } = useTransitData()
@@ -18,6 +19,7 @@ export default function Home() {
   //mapbox refs
   const mapContainer = useRef(null) // points at the div
   const map = useRef(null) // stores the mapbox instance
+  const boundsRef = useRef(null) // reset target, filled once stop data arrives
   mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
   const getBusColor = (createdUser) => {
@@ -58,6 +60,8 @@ export default function Home() {
       center: [-89.2903, 31.3271],
       zoom: 12
     })
+    map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+    map.current.addControl(new FitBoundsControl(() => boundsRef.current), 'top-right')
     return () => { map.current?.remove(); map.current = null }
   }, [])
 
@@ -67,8 +71,11 @@ export default function Home() {
 
     const minlat = Math.min(...allStops.map(s => s.coords[0]))
     const minlng = Math.min(...allStops.map(s => s.coords[1]))
+
     const maxlat = Math.max(...allStops.map(s => s.coords[0]))
     const maxlng = Math.max(...allStops.map(s => s.coords[1]))
+
+    boundsRef.current = [[minlng, minlat], [maxlng, maxlat]]
 
     // console.log("Min Lat:", minlat)
     // console.log("Min Lng:", minlng)

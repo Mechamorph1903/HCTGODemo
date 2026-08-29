@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react'
 import { db } from '../data/firebase.js'
 import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore'
 import mapboxgl from 'mapbox-gl'
+import { FitBoundsControl } from '../utils/mapControls.js'
 
 export default function RoutePage({route}){
     const [currRoute, setCurrRoute] = useState(null)
@@ -57,6 +58,7 @@ export default function RoutePage({route}){
     //mapbox refs
     const map = useRef(null)
     const mapContainer = useRef(null)
+    const boundsRef = useRef(null)
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
      // rendering map
@@ -68,6 +70,7 @@ export default function RoutePage({route}){
         const minlng = Math.min(...routeStops.map(stop => stop.coords[1]))
         const maxlat = Math.max(...routeStops.map(stop => stop.coords[0]))
         const maxlng = Math.max(...routeStops.map(stop => stop.coords[1]))
+        boundsRef.current = [[minlng, minlat], [maxlng, maxlat]]
 
         map.current = new mapboxgl.Map({
         container: mapContainer.current,
@@ -75,6 +78,9 @@ export default function RoutePage({route}){
         center: [-89.2903, 31.3271],
         zoom: 12
         })
+
+        map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+        map.current.addControl(new FitBoundsControl(() => boundsRef.current), 'top-right')
 
         map.current.on('load', () => {
             map.current.fitBounds([[minlng, minlat], [maxlng, maxlat]], { padding: 40 })

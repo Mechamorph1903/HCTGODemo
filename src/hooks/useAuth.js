@@ -1,8 +1,8 @@
 // hooks/useAuth.js
 import { useState, useEffect } from 'react'
 import { auth, db } from '../data/firebase.js'
-import { signInAnonymously, onAuthStateChanged } from 'firebase/auth'
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, collection, getDocs, query, where } from 'firebase/firestore'
+import { signInAnonymously, onAuthStateChanged, deleteUser } from 'firebase/auth'
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, collection, getDocs, query, where } from 'firebase/firestore'
 
 export const useAuth = () => {
     const [uid, setUid] = useState(null)
@@ -59,5 +59,15 @@ export const useAuth = () => {
         return !snapshot.empty
     }
 
-    return { uid, profile, setName, toggleFavorite, isUsernameTaken}
+    //deletes the firestore profile, then the anonymous auth user itself.
+    //removing the auth user makes onAuthStateChanged fire with null, which re-runs
+    //the anonymous sign-in above and hands back a fresh uid with a blank profile
+    const deleteProfile = async () => {
+        if (!uid) return
+        await deleteDoc(doc(db, "users", uid))
+        setProfile(null)
+        if (auth.currentUser) await deleteUser(auth.currentUser)
+    }
+
+    return { uid, profile, setName, toggleFavorite, isUsernameTaken, deleteProfile }
 }

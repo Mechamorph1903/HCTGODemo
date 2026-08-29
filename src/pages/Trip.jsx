@@ -7,6 +7,7 @@ import { useTransitData } from '../context/TransitDataContext.jsx'
 import mapboxgl from 'mapbox-gl'
 import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey,nodeKeyOf, pathToSegments, buildOption, edgeBlocker, resolveBusRoute} from '../utils/navigation.js'
 import { minutesToTimeInput, minutesToClockString } from "../utils/schedule.js";
+import { FitBoundsControl } from "../utils/mapControls.js";
 import { useDebounce } from "../hooks/debounce.js";
 import { useLiveBuses } from "../context/BusPositionsContext.jsx";
 
@@ -326,14 +327,13 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         )
         const lngs = allCoords.map(c => c[0])
         const lats = allCoords.map(c => c[1])
-        map.current.fitBounds(
-            [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
-            { padding: 60 }
-        )
+        boundsRef.current = [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]]
+        map.current.fitBounds(boundsRef.current, { padding: 60 })
     }, [selectedOption])
 
     const map = useRef(null)
     const mapContainer = useRef(null)
+    const boundsRef = useRef(null) // reset target — the planned trip's extent
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
     useEffect(() => {
@@ -349,6 +349,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
             trackUserLocation: true,
             showUserHeading: true
         }))
+        map.current.addControl(new FitBoundsControl(() => boundsRef.current, { padding: 60 }))
         return () => { map.current?.remove(); map.current = null }
     }, [])
 
