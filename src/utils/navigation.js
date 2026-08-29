@@ -325,6 +325,16 @@ export const getWalkingDirections =  async (originCoords, destCoords) => {
 	}
 }
 
+//straight-line distance in METRES between two lat/lng points, same flat-earth
+//approximation used everywhere else in this file. worth having explicitly: raw
+//degree deltas are anisotropic (a degree of longitude is ~15% shorter than a
+//degree of latitude here), so thresholding on degrees gives an oval, not a circle
+export const distanceMeters = (lat1, lng1, lat2, lng2) => {
+	const latMeters = (lat1 - lat2) * 111000
+	const lngMeters = (lng1 - lng2) * 94800
+	return Math.sqrt(latMeters * latMeters + lngMeters * lngMeters)
+}
+
 //finds every stop within maxMeters of a point (flat-earth approximation, fine at city scale) - used to find candidate boarding/alighting stops near the origin and destination
 export const findStopsWithin = (lat, lng, allStops, maxMeters = 1000) => {
 	const results = []

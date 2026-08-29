@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { useTransitData } from '../context/TransitDataContext.jsx'
 import mapboxgl from 'mapbox-gl'
-import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey,nodeKeyOf, pathToSegments, buildOption, edgeBlocker, resolveBusRoute} from '../utils/navigation.js'
+import { stopGrouper, buildTransitGraph, djisktras, getPath, findNearestStop, geocodeAddress, retrievePlace, getWalkingDirections, findStopsWithin, buildTripGraph, getNextDeparture, nodeKey,nodeKeyOf, pathToSegments, buildOption, edgeBlocker, resolveBusRoute, distanceMeters} from '../utils/navigation.js'
 import { minutesToTimeInput, minutesToClockString } from "../utils/schedule.js";
 import { FitBoundsControl } from "../utils/mapControls.js";
 import { useDebounce } from "../hooks/debounce.js";
@@ -30,9 +30,17 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
     const [departAt, setDepartAt] = useState(null)
     const [nowTick, setNowTick] = useState(Date.now())
     const [showTimePicker, setShowTimePicker] = useState(false)
+    const [showFullPlan, setShowFullPlan] = useState(false)
+    const [expandedPlanSeg, setExpandedPlanSeg] = useState(null)
     const [tripStarted, setTripStarted] = useState(false)
     const [activeSegmentIndex, setActiveSegmentIndex] = useState(0)
     const [liveUserLocation, setLiveUserLocation] = useState(null)
+    const [liveAccuracy, setLiveAccuracy] = useState(null)
+    const [liveSpeed, setLiveSpeed] = useState(null)
+    //where we were standing when the last segment advance fired, and how many
+    //consecutive in-range samples we've seen — both guards against false advances
+    const advanceAnchorRef = useRef(null)
+    const inRangeCountRef = useRef(0)
     const busPositions = useLiveBuses()
 
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -58,7 +66,19 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
 
     const activeSegment = tripStarted && selectedOption ? selectedOption.segments[activeSegmentIndex] : null
 
-    const PROXIMITY_THRESHOLD = 0.0003
+    //--- arrival detection tuning (all metres) ---
+    //ARRIVE_RADIUS is deliberately not as tight as it could be: consumer GPS is only
+    //good to ~5-15m in the open and worse between buildings, so an aggressive radius
+    //means the advance simply never fires. Instead it widens to match whatever
+    //accuracy the device reports, and the guards below stop early/duplicate advances.
+    const ARRIVE_RADIUS_M = 15
+    const ARRIVE_RADIUS_MAX_M = 35
+    //the rider must actually travel this far from the last advance before another can
+    //fire. this is what stops one GPS fix consuming two segments when their endpoints
+    //sit close together — a stop across the road, or a loop that returns near itself.
+    const MIN_TRAVEL_BETWEEN_ADVANCES_M = 40
+    //consecutive in-range samples required, so a single GPS spike can't advance us
+    const DWELL_SAMPLES = 2
 
     const tripRouteBuses = useMemo(() => {
         if (!tripStarted || !selectedOption || !busPositions.length) return []
@@ -93,8 +113,10 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                 if (alightStop) { targetLat = alightStop.coords[0]; targetLng = alightStop.coords[1] }
             }
             if (targetLat !== undefined && targetLng !== undefined) {
-                const dist = Math.sqrt((liveUserLocation[0] - targetLat) ** 2 + (liveUserLocation[1] - targetLng) ** 2)
-                if (dist < PROXIMITY_THRESHOLD * 3) return { type: 'arrived', message: "You've arrived!" }
+                //more generous than the advance radius — this only changes the wording on the
+                //card, so calling it early is harmless where a wrong advance is not
+                const dist = distanceMeters(liveUserLocation[0], liveUserLocation[1], targetLat, targetLng)
+                if (dist < ARRIVE_RADIUS_MAX_M * 1.5) return { type: 'arrived', message: "You've arrived!" }
             }
         }
 
@@ -115,10 +137,48 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         let stopsRemaining = alightIdx - nearIdx
         if (stopsRemaining < 0) stopsRemaining += segStops.length
 
-        if (stopsRemaining <= 1) return { type: 'getOff', message: 'Get off here!' }
-        if (stopsRemaining <= 3) return { type: 'getOffSoon', message: `Get off in ${stopsRemaining} stops` }
-        return { type: 'riding', message: `${stopsRemaining} stops to ${seg.alightStop}` }
+        if (stopsRemaining <= 1) return { type: 'getOff', message: 'Get off here!', stopsRemaining }
+        if (stopsRemaining <= 3) return { type: 'getOffSoon', message: `Get off in ${stopsRemaining} stops`, stopsRemaining }
+        return { type: 'riding', message: `${stopsRemaining} stops to ${seg.alightStop}`, stopsRemaining }
     }, [tripStarted, liveUserLocation, activeSegmentIndex, selectedOption, stopLookup, allStops])
+
+    //--- am I on the bus? ---
+    //this is inferred, never required. a rider who taps nothing still gets correct
+    //output — the tap is a shortcut and a correction, not the mechanism. anything
+    //destructive (replanning, "you missed it") must require positive evidence of NOT
+    //riding rather than merely the absence of evidence that they are.
+    const VEHICLE_SPEED_MS = 4.5 // ~10mph — well clear of running
+    const [ridingOverride, setRidingOverride] = useState(null)
+    const [sawVehicleSpeed, setSawVehicleSpeed] = useState(false)
+    const [progressedStops, setProgressedStops] = useState(false)
+    const initialStopsRef = useRef(null)
+
+    //every leg is a fresh boarding decision
+    useEffect(() => {
+        setRidingOverride(null)
+        setSawVehicleSpeed(false)
+        setProgressedStops(false)
+        initialStopsRef.current = null
+    }, [activeSegmentIndex])
+
+    //evidence 1 — latched, because a bus sitting at a stop reads as stationary.
+    //once you've moved at road speed on this leg, you're aboard.
+    useEffect(() => {
+        if (liveSpeed !== null && liveSpeed > VEHICLE_SPEED_MS) setSawVehicleSpeed(true)
+    }, [liveSpeed])
+
+    //evidence 2 — you've been carried past stops. requires 2 to absorb the flicker
+    //you get at a boarding stop where two stops sit almost on top of each other.
+    useEffect(() => {
+        const s = proximityStatus?.stopsRemaining
+        if (s == null) return
+        if (initialStopsRef.current === null) { initialStopsRef.current = s; return }
+        if (s <= initialStopsRef.current - 2) setProgressedStops(true)
+    }, [proximityStatus])
+
+    const isRiding = ridingOverride !== null
+        ? ridingOverride
+        : (activeSegment?.mode !== 'walk' && (sawVehicleSpeed || progressedStops))
 
     const busETA = useMemo(() => {
         if (!activeSegment || activeSegment.mode === 'walk' || !busPositions.length) return null
@@ -142,9 +202,13 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         const nearestStopToBus = findNearestStop(nearest._raw.geometry.y, nearest._raw.geometry.x, segStops)
         if (!nearestStopToBus) return null
 
+        //a non-positive gap means this bus is already past your boarding stop, so the
+        //wrap is really "the next loop". flagged rather than silently folded in — that
+        //fold is what produced "bus 30 min away" while the rider was sitting on it
         let minutesAway = boardStop.minuteOffset - nearestStopToBus.minuteOffset
-        if (minutesAway <= 0) minutesAway += route.frequency[0]
-        return Math.max(1, Math.round(minutesAway))
+        let wrapped = false
+        if (minutesAway <= 0) { minutesAway += route.frequency[0]; wrapped = true }
+        return { minutes: Math.max(1, Math.round(minutesAway)), wrapped }
     }, [activeSegment, busPositions, routeLookup, stopLookup, allStops, busDocs, routes])
 
     const debouncedOrigin = useDebounce(origin, 400)
@@ -262,6 +326,28 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         )
     }, [])
 
+    //while the rider is relying on "current location" as their origin, keep it live —
+    //someone walking should always be planned from where they actually are, not from
+    //wherever they opened the page. only replans on a meaningful move: each change
+    //runs dijkstra three times plus walking-directions fetches. stops once an explicit
+    //origin is typed or the trip starts (the nav watcher below takes over then).
+    useEffect(() => {
+        if (originCoords || tripStarted) return
+        const watchId = navigator.geolocation.watchPosition(
+            (position) => {
+                setUserLocation(prev => {
+                    if (prev && distanceMeters(prev[0], prev[1], position.coords.latitude, position.coords.longitude) < 30) {
+                        return prev //below the replan threshold — keep the same reference so planTrip doesn't re-fire
+                    }
+                    return [position.coords.latitude, position.coords.longitude]
+                })
+            },
+            (error) => console.log('Origin tracking error:', error),
+            { enableHighAccuracy: false }
+        )
+        return () => navigator.geolocation.clearWatch(watchId)
+    }, [originCoords, tripStarted])
+
     useEffect(() => {
         if (!debouncedOrigin || originSelected) {
             setOriginSelected(false)
@@ -322,6 +408,73 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
             map.current.addLayer({ id, type: 'line', source: id, paint })
         })
 
+        //both ends of every bus leg — the stop you walk to and board at, and the stop
+        //you get off at. the only two stops the rider has to act on, so they get a
+        //distinct marker and a label rather than blending into the route line.
+        const rideStopFeatures = []
+        selectedOption.segments.forEach((seg, i) => {
+            if (seg.mode === 'walk') return
+            const color = routeLookup[seg.mode]?.color ?? '#888'
+            for (const [kind, name] of [['board', seg.boardStop], ['alight', seg.alightStop]]) {
+                const stop = stopLookup[nodeKey(seg.mode, name)]
+                if (!stop) continue
+                rideStopFeatures.push({
+                    type: 'Feature',
+                    properties: { color, name, kind, segIndex: i },
+                    geometry: { type: 'Point', coordinates: [stop.coords[1], stop.coords[0]] }
+                })
+            }
+        })
+
+        if (map.current.getLayer('ride-stop-label')) map.current.removeLayer('ride-stop-label')
+        if (map.current.getLayer('ride-stop-marker')) map.current.removeLayer('ride-stop-marker')
+        if (map.current.getSource('ride-stops')) map.current.removeSource('ride-stops')
+
+        if (rideStopFeatures.length) {
+            map.current.addSource('ride-stops', {
+                type: 'geojson',
+                data: { type: 'FeatureCollection', features: rideStopFeatures }
+            })
+            map.current.addLayer({
+                id: 'ride-stop-marker',
+                type: 'circle',
+                source: 'ride-stops',
+                paint: {
+                    'circle-radius': 6,
+                    'circle-color': '#ffffff',
+                    'circle-stroke-color': ['get', 'color'],
+                    'circle-stroke-width': 2,
+                }
+            })
+            map.current.addLayer({
+                id: 'ride-stop-label',
+                type: 'symbol',
+                source: 'ride-stops',
+                layout: {
+                    'text-field': ['get', 'name'],
+                    'text-size': 11,
+                    'text-anchor': 'top',
+                    'text-offset': [0, 0.9],
+                    'text-allow-overlap': false,
+                },
+                paint: {
+                    'text-color': '#111111',
+                    'text-halo-color': '#ffffff',
+                    'text-halo-width': 1.5,
+                }
+            })
+        }
+
+        //destination pin — walk legs end somewhere with no stop marker of its own, so
+        //without this there's nothing telling the rider where to actually stop
+        destMarkerRef.current?.remove()
+        destMarkerRef.current = null
+        if (destinationCoords.length === 2) {
+            destMarkerRef.current = new mapboxgl.Marker({ color: '#111827' })
+                .setLngLat([destinationCoords[1], destinationCoords[0]])
+                .addTo(map.current)
+        }
+
         const allCoords = selectedOption.segments.flatMap(seg =>
             seg.mode === "walk" ? seg.geometry.coordinates : seg.coords
         )
@@ -334,6 +487,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
     const map = useRef(null)
     const mapContainer = useRef(null)
     const boundsRef = useRef(null) // reset target — the planned trip's extent
+    const destMarkerRef = useRef(null) // mapbox Marker instance for the destination pin
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
     useEffect(() => {
@@ -353,15 +507,31 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         return () => { map.current?.remove(); map.current = null }
     }, [])
 
+    //fires once: userLocation now updates continuously while the rider is using their
+    //current position as the origin, and re-centring on every one of those would drag
+    //the map out from under them mid-pan
+    const didCentreOnUser = useRef(false)
     useEffect(() => {
-        if (!map.current || !userLocation) return
+        if (!map.current || !userLocation || didCentreOnUser.current) return
+        didCentreOnUser.current = true
         map.current.flyTo({ center: [userLocation[1], userLocation[0]], zoom: 14 })
     }, [userLocation])
 
     useEffect(() => {
-        if (!tripStarted) return
+        if (!tripStarted) {
+            //clear the guards so the next trip starts from a clean slate
+            advanceAnchorRef.current = null
+            inRangeCountRef.current = 0
+            setLiveAccuracy(null)
+            setLiveSpeed(null)
+            return
+        }
         const watchId = navigator.geolocation.watchPosition(
-            (position) => setLiveUserLocation([position.coords.latitude, position.coords.longitude]),
+            (position) => {
+                setLiveUserLocation([position.coords.latitude, position.coords.longitude])
+                setLiveAccuracy(position.coords.accuracy ?? null)
+                setLiveSpeed(position.coords.speed ?? null)
+            },
             (error) => console.log('Live tracking error:', error),
             { enableHighAccuracy: true }
         )
@@ -410,6 +580,8 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         const seg = selectedOption.segments[activeSegmentIndex]
         if (!seg) return
         const segs = selectedOption.segments
+        if (activeSegmentIndex >= segs.length - 1) return
+
         let targetLat, targetLng
         if (seg.mode === 'walk') {
             const walkCoords = seg.geometry?.coordinates
@@ -421,14 +593,38 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
             if (!alightStop) return
             targetLat = alightStop.coords[0]; targetLng = alightStop.coords[1]
         }
-        const dist = Math.sqrt(
-            (liveUserLocation[0] - targetLat) ** 2 +
-            (liveUserLocation[1] - targetLng) ** 2
-        )
-        if (dist < PROXIMITY_THRESHOLD && activeSegmentIndex < segs.length - 1) {
-            setActiveSegmentIndex(activeSegmentIndex + 1)
+
+        //guard 1 — must have genuinely moved on from the previous advance. without this
+        //the effect re-runs on the new index and, if the next endpoint is also nearby,
+        //consumes it from the same GPS fix
+        const anchor = advanceAnchorRef.current
+        const travelled = anchor
+            ? distanceMeters(liveUserLocation[0], liveUserLocation[1], anchor[0], anchor[1])
+            : Infinity
+        if (travelled < MIN_TRAVEL_BETWEEN_ADVANCES_M) {
+            inRangeCountRef.current = 0
+            return
         }
-    }, [liveUserLocation, tripStarted, activeSegmentIndex, selectedOption])
+
+        //guard 2 — widen the arrival radius to whatever the device can actually resolve
+        const radius = Math.min(
+            Math.max(ARRIVE_RADIUS_M, liveAccuracy ?? 0),
+            ARRIVE_RADIUS_MAX_M
+        )
+        const dist = distanceMeters(liveUserLocation[0], liveUserLocation[1], targetLat, targetLng)
+        if (dist > radius) {
+            inRangeCountRef.current = 0
+            return
+        }
+
+        //guard 3 — hold for a couple of samples so one bad fix can't skip a leg
+        inRangeCountRef.current += 1
+        if (inRangeCountRef.current < DWELL_SAMPLES) return
+
+        inRangeCountRef.current = 0
+        advanceAnchorRef.current = [liveUserLocation[0], liveUserLocation[1]]
+        setActiveSegmentIndex(activeSegmentIndex + 1)
+    }, [liveUserLocation, liveAccuracy, tripStarted, activeSegmentIndex, selectedOption])
 
     useEffect(() => {
         if (!map.current || !tripStarted || !selectedOption) return
@@ -765,14 +961,31 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                     <p className="text-sm text-slate-400 dark:text-slate-500">
                                         {activeSegment?.stops?.length - 1} stops to {activeSegment?.alightStop} &middot; {activeSegment?.minutes} min
                                     </p>
-                                    {busETA && (
+                                    {/* only meaningful before boarding — once aboard, the stop count is the useful number */}
+                                    {busETA && !isRiding && (
                                         <p className="text-sm text-blue-500 dark:text-blue-400 font-medium mt-0.5">
                                             <FontAwesomeIcon icon="fa-solid fa-bus" className="mr-1.5 text-xs" />
-                                            Bus ~{busETA} min away
+                                            {busETA.wrapped ? `Next bus ~${busETA.minutes} min` : `Bus ~${busETA.minutes} min away`}
+                                        </p>
+                                    )}
+                                    {isRiding && (
+                                        <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">
+                                            <FontAwesomeIcon icon="fa-solid fa-bus" className="mr-1.5 text-xs" />
+                                            On board
                                         </p>
                                     )}
                                 </div>
                             </div>
+                        )}
+
+                        {/* boarding control — confirms or corrects whatever was inferred */}
+                        {activeSegment?.mode !== 'walk' && (
+                            <button
+                                onClick={() => setRidingOverride(!isRiding)}
+                                className="mt-3 w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-blue-600 dark:text-blue-400"
+                            >
+                                {isRiding ? "Not on the bus?" : "I'm on the bus"}
+                            </button>
                         )}
 
                         {proximityStatus && ['getOff', 'getOffSoon', 'arrived'].includes(proximityStatus.type) && (
@@ -792,6 +1005,79 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                             </p>
                         )}
                     </div>
+
+                    {/* full plan, collapsed by default — the nav card only ever shows the current
+                        leg, so this is the rider's way back to "what does the whole trip look like" */}
+                    <button
+                        onClick={() => setShowFullPlan(!showFullPlan)}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-left"
+                    >
+                        <FontAwesomeIcon icon="fa-solid fa-list" className="text-slate-400 text-xs" />
+                        <span className="flex-1 text-sm font-semibold">{showFullPlan ? 'Hide full route' : 'View full route'}</span>
+                        <FontAwesomeIcon icon={showFullPlan ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'} className="text-slate-300 dark:text-slate-600 text-xs" />
+                    </button>
+
+                    {showFullPlan && (
+                        <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                            {selectedOption.segments.map((seg, i) => {
+                                const done = i < activeSegmentIndex
+                                const current = i === activeSegmentIndex
+                                const open = expandedPlanSeg === i
+                                return (
+                                    <div key={i}>
+                                        <button
+                                            onClick={() => setExpandedPlanSeg(open ? null : i)}
+                                            className={`w-full flex items-center gap-3 px-4 py-3 text-left ${current ? 'bg-slate-100 dark:bg-slate-800' : ''}`}
+                                        >
+                                            <span
+                                                className={`h-2.5 w-2.5 rounded-full shrink-0 ${done ? 'opacity-35' : ''}`}
+                                                style={{ backgroundColor: seg.mode === 'walk' ? '#94a3b8' : (routeLookup[seg.mode]?.color ?? '#888') }}
+                                            />
+                                            <span className="flex-1">
+                                                <span className={`block text-sm ${current ? 'font-bold' : 'font-medium'} ${done ? 'text-slate-400 dark:text-slate-500' : ''}`}>
+                                                    {seg.mode === 'walk'
+                                                        ? `Walk to ${seg.to === 'DESTINATION' ? 'your destination' : seg.to}`
+                                                        : `${routeLookup[seg.mode]?.name ?? seg.mode} Route to ${seg.alightStop}`}
+                                                </span>
+                                                <span className="block text-xs text-slate-400 dark:text-slate-500">
+                                                    {seg.mode === 'walk'
+                                                        ? `${seg.minutes} min`
+                                                        : `Board at ${seg.boardStop} · ${seg.minutes} min`}
+                                                </span>
+                                            </span>
+                                            {done && <FontAwesomeIcon icon="fa-solid fa-check" className="text-slate-300 dark:text-slate-600 text-xs" />}
+                                            <FontAwesomeIcon icon={open ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'} className="text-slate-300 dark:text-slate-600 text-xs" />
+                                        </button>
+
+                                        {/* same detail the rider had before starting — turn-by-turn for a walk,
+                                            the stop sequence for a ride. mid-trip is exactly when you want to
+                                            re-check "wait, which stop was it again" */}
+                                        {open && seg.mode === 'walk' && seg.steps && (
+                                            <ol className="pl-11 pr-4 pb-3 flex flex-col gap-1">
+                                                {seg.steps.map((step, j) => (
+                                                    <li key={j} className="text-xs text-slate-500 dark:text-slate-400">
+                                                        {step.instruction}
+                                                        {step.distance > 0 && <span className="text-slate-300 dark:text-slate-600"> &middot; {step.distance}m</span>}
+                                                    </li>
+                                                ))}
+                                            </ol>
+                                        )}
+                                        {open && seg.mode !== 'walk' && seg.stops && (
+                                            <ol className="ml-11 mr-4 mb-3 pl-3 border-l-2 flex flex-col gap-1" style={{ borderColor: routeLookup[seg.mode]?.color }}>
+                                                {seg.stops.map((s, j) => (
+                                                    <li key={j} className="text-xs text-slate-500 dark:text-slate-400">
+                                                        {s.name}
+                                                        {j === 0 && <span className="text-slate-300 dark:text-slate-600"> &middot; board here</span>}
+                                                        {j === seg.stops.length - 1 && <span className="text-slate-300 dark:text-slate-600"> &middot; get off</span>}
+                                                    </li>
+                                                ))}
+                                            </ol>
+                                        )}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    )}
 
                     <button
                         onClick={() => { setTripStarted(false); setActiveSegmentIndex(0); setLiveUserLocation(null) }}
