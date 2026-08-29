@@ -30,7 +30,6 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
     const [departAt, setDepartAt] = useState(null)
     const [nowTick, setNowTick] = useState(Date.now())
     const [showTimePicker, setShowTimePicker] = useState(false)
-    const [showFullPlan, setShowFullPlan] = useState(false)
     const [expandedPlanSeg, setExpandedPlanSeg] = useState(null)
     const [tripStarted, setTripStarted] = useState(false)
     const [activeSegmentIndex, setActiveSegmentIndex] = useState(0)
@@ -1006,19 +1005,11 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                         )}
                     </div>
 
-                    {/* full plan, collapsed by default — the nav card only ever shows the current
-                        leg, so this is the rider's way back to "what does the whole trip look like" */}
-                    <button
-                        onClick={() => setShowFullPlan(!showFullPlan)}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-left"
-                    >
-                        <FontAwesomeIcon icon="fa-solid fa-list" className="text-slate-400 text-xs" />
-                        <span className="flex-1 text-sm font-semibold">{showFullPlan ? 'Hide full route' : 'View full route'}</span>
-                        <FontAwesomeIcon icon={showFullPlan ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'} className="text-slate-300 dark:text-slate-600 text-xs" />
-                    </button>
-
-                    {showFullPlan && (
-                        <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    {/* the whole plan, always visible — same as before departure. the nav card
+                        only ever shows the current leg, so this is where the rider re-checks the
+                        rest of the trip. each leg expands to its own detail. */}
+                    <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Full route</p>
+                    <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 overflow-hidden">
                             {selectedOption.segments.map((seg, i) => {
                                 const done = i < activeSegmentIndex
                                 const current = i === activeSegmentIndex
@@ -1076,8 +1067,7 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                     </div>
                                 )
                             })}
-                        </div>
-                    )}
+                    </div>
 
                     <button
                         onClick={() => { setTripStarted(false); setActiveSegmentIndex(0); setLiveUserLocation(null) }}
