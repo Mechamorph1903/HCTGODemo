@@ -179,6 +179,46 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
         ? ridingOverride
         : (activeSegment?.mode !== 'walk' && (sawVehicleSpeed || progressedStops))
 
+    //how far into the *current* leg the rider is, counted in sub-steps: turn instructions
+    //for a walk, stops for a ride. lets the detail list dim what's already behind them
+    //rather than only dimming whole legs.
+    const activeSubStepProgress = useMemo(() => {
+        if (!tripStarted || !liveUserLocation || !activeSegment) return 0
+
+        if (activeSegment.mode === 'walk') {
+            const coords = activeSegment.geometry?.coordinates
+            if (!coords?.length || !activeSegment.steps?.length) return 0
+            //nearest vertex on the walking line, then distance along the line to reach it
+            let bestIdx = 0, bestD = Infinity
+            coords.forEach((c, idx) => {
+                const d = distanceMeters(liveUserLocation[0], liveUserLocation[1], c[1], c[0])
+                if (d < bestD) { bestD = d; bestIdx = idx }
+            })
+            let travelled = 0
+            for (let k = 1; k <= bestIdx; k++) {
+                travelled += distanceMeters(coords[k - 1][1], coords[k - 1][0], coords[k][1], coords[k][0])
+            }
+            let acc = 0, doneCount = 0
+            for (const s of activeSegment.steps) {
+                acc += s.distance || 0
+                if (acc <= travelled) doneCount++
+                else break
+            }
+            return doneCount
+        }
+
+        //riding: whichever stop in this leg the rider is closest to is where they are
+        const stops = activeSegment.stops || []
+        let bestIdx = 0, bestD = Infinity
+        stops.forEach((s, idx) => {
+            const full = stopLookup[nodeKey(activeSegment.mode, s.name)]
+            if (!full) return
+            const d = distanceMeters(liveUserLocation[0], liveUserLocation[1], full.coords[0], full.coords[1])
+            if (d < bestD) { bestD = d; bestIdx = idx }
+        })
+        return bestIdx
+    }, [tripStarted, liveUserLocation, activeSegment, stopLookup])
+
     const busETA = useMemo(() => {
         if (!activeSegment || activeSegment.mode === 'walk' || !busPositions.length) return null
         const route = routeLookup[activeSegment.mode]
@@ -1014,18 +1054,19 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                 const done = i < activeSegmentIndex
                                 const current = i === activeSegmentIndex
                                 const open = expandedPlanSeg === i
+                                //completed legs dim as a whole — row and its expanded detail together
                                 return (
-                                    <div key={i}>
+                                    <div key={i} className={done ? 'opacity-45' : ''}>
                                         <button
                                             onClick={() => setExpandedPlanSeg(open ? null : i)}
                                             className={`w-full flex items-center gap-3 px-4 py-3 text-left ${current ? 'bg-slate-100 dark:bg-slate-800' : ''}`}
                                         >
                                             <span
-                                                className={`h-2.5 w-2.5 rounded-full shrink-0 ${done ? 'opacity-35' : ''}`}
+                                                className="h-2.5 w-2.5 rounded-full shrink-0"
                                                 style={{ backgroundColor: seg.mode === 'walk' ? '#94a3b8' : (routeLookup[seg.mode]?.color ?? '#888') }}
                                             />
                                             <span className="flex-1">
-                                                <span className={`block text-sm ${current ? 'font-bold' : 'font-medium'} ${done ? 'text-slate-400 dark:text-slate-500' : ''}`}>
+                                                <span className={`block text-sm ${current ? 'font-bold' : 'font-medium'} ${done ? 'line-through' : ''}`}>
                                                     {seg.mode === 'walk'
                                                         ? `Walk to ${seg.to === 'DESTINATION' ? 'your destination' : seg.to}`
                                                         : `${routeLookup[seg.mode]?.name ?? seg.mode} Route to ${seg.alightStop}`}
@@ -1045,23 +1086,31 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                             re-check "wait, which stop was it again" */}
                                         {open && seg.mode === 'walk' && seg.steps && (
                                             <ol className="pl-11 pr-4 pb-3 flex flex-col gap-1">
-                                                {seg.steps.map((step, j) => (
-                                                    <li key={j} className="text-xs text-slate-500 dark:text-slate-400">
-                                                        {step.instruction}
-                                                        {step.distance > 0 && <span className="text-slate-300 dark:text-slate-600"> &middot; {step.distance}m</span>}
-                                                    </li>
-                                                ))}
+                                                {seg.steps.map((step, j) => {
+                                                    //a whole finished leg dims via the wrapper; within the current
+                                                    //leg we only dim what the rider has actually passed
+                                                    const subDone = current && j < activeSubStepProgress
+                                                    return (
+                                                        <li key={j} className={`text-xs text-slate-500 dark:text-slate-400 ${subDone ? 'opacity-45 line-through' : ''}`}>
+                                                            {step.instruction}
+                                                            {step.distance > 0 && <span className="text-slate-300 dark:text-slate-600"> &middot; {step.distance}m</span>}
+                                                        </li>
+                                                    )
+                                                })}
                                             </ol>
                                         )}
                                         {open && seg.mode !== 'walk' && seg.stops && (
                                             <ol className="ml-11 mr-4 mb-3 pl-3 border-l-2 flex flex-col gap-1" style={{ borderColor: routeLookup[seg.mode]?.color }}>
-                                                {seg.stops.map((s, j) => (
-                                                    <li key={j} className="text-xs text-slate-500 dark:text-slate-400">
-                                                        {s.name}
-                                                        {j === 0 && <span className="text-slate-300 dark:text-slate-600"> &middot; board here</span>}
-                                                        {j === seg.stops.length - 1 && <span className="text-slate-300 dark:text-slate-600"> &middot; get off</span>}
-                                                    </li>
-                                                ))}
+                                                {seg.stops.map((s, j) => {
+                                                    const subDone = current && j < activeSubStepProgress
+                                                    return (
+                                                        <li key={j} className={`text-xs text-slate-500 dark:text-slate-400 ${subDone ? 'opacity-45 line-through' : ''}`}>
+                                                            {s.name}
+                                                            {j === 0 && <span className="text-slate-300 dark:text-slate-600"> &middot; board here</span>}
+                                                            {j === seg.stops.length - 1 && <span className="text-slate-300 dark:text-slate-600"> &middot; get off</span>}
+                                                        </li>
+                                                    )
+                                                })}
                                             </ol>
                                         )}
                                     </div>
