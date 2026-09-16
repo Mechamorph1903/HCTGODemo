@@ -1,5 +1,4 @@
-# HCTGo Web
-
+# HCTGo
 The browser build of the Hub City Transit rider application. I used this to model what would be shown on the mobile app (built with Expo). Since React was close to React Native, it was easier for me to build with React and then convert to React Native.
 
 My intention with this project was to provide a solution to Hattiesburg not having its transit information in an accessible location. Its content was hosted on a website, and I believed a mobile app was more in line with modern standards. I got this idea from my experience with Transit app in Maryland and Ventra app in Chicago. It became a passion project to at least try and emulate that for Hattiesburg, home to my alma mater, the University of Southern Mississippi.
