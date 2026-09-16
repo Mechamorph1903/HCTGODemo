@@ -806,6 +806,8 @@ export default function Trip({ initialDestination, initialDestinationCoords }) {
                                 <span className="text-sm text-slate-700 dark:text-slate-300">Depart</span>
                                 <input
                                     type="datetime-local"
+                                    //300s — snaps the native spinner to the :00 :05 :10 grid
+                                    step="300"
                                     value={departAt ? dateToLocalInput(departAt) : ''}
                                     onChange={(e) => {
                                         if (!e.target.value) return

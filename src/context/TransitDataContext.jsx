@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { db } from '../data/firebase.js'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, onSnapshot } from 'firebase/firestore'
 
 const TransitDataContext = createContext({ routes: [], allStops: [], busDocs: [], loading: true })
 
@@ -10,29 +10,27 @@ export function TransitDataProvider({ children }) {
   const [busDocs, setBusDocs] = useState([])
   const [loading, setLoading] = useState(true)
 
+  //live listeners rather than a single fetch on mount. the one-shot meant an admin
+  //change — a delay, a new special route, an edited stop — never reached an open tab
   useEffect(() => {
-    async function fetchAll() {
-      try {
-        const [routesSnap, stopsSnap, busesSnap] = await Promise.all([
-          getDocs(collection(db, "routes")),
-          getDocs(collection(db, "stops")),
-          getDocs(collection(db, "buses")),
-        ])
-        const r = []
-        routesSnap.forEach((doc) => r.push({ id: doc.id, ...doc.data() }))
-        const s = []
-        stopsSnap.forEach((doc) => s.push({ id: doc.id, ...doc.data() }))
-        const b = []
-        busesSnap.forEach((doc) => b.push({ id: doc.id, ...doc.data() }))
-        setRoutes(r)
-        setAllStops(s)
-        setBusDocs(b)
-      } catch (error) {
-        console.error("Error fetching transit data: ", error)
-      }
-      setLoading(false)
+    const collect = (snap) => {
+      const out = []
+      snap.forEach((d) => out.push({ id: d.id, ...d.data() }))
+      return out
     }
-    fetchAll()
+
+    const unsubRoutes = onSnapshot(collection(db, "routes"), (snap) => {
+      setRoutes(collect(snap))
+      setLoading(false)
+    }, (error) => { console.error("routes listener failed:", error); setLoading(false) })
+
+    const unsubStops = onSnapshot(collection(db, "stops"), (snap) => setAllStops(collect(snap)),
+      (error) => console.error("stops listener failed:", error))
+
+    const unsubBuses = onSnapshot(collection(db, "buses"), (snap) => setBusDocs(collect(snap)),
+      (error) => console.error("buses listener failed:", error))
+
+    return () => { unsubRoutes(); unsubStops(); unsubBuses() }
   }, [])
 
   return (
