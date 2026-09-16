@@ -1,10 +1,8 @@
 # HCTGo Web
 
-The browser build of the Hub City Transit rider application. It offers the same live
-map, journey planning and navigation as the mobile application, for riders on a desktop
-or on a phone without the app installed.
+The browser build of the Hub City Transit rider application. I used this to model what would be shown on the mobile app (built with Expo). Since React was close to React Native, it was easier for me to build with React and then convert to React Native.
 
-Built with React and Vite.
+My intention with this project was to provide a solution to Hattiesburg not having its transit information in an accessible location. Its content was hosted on a website, and I believed a mobile app was more in line with modern standards. I got this idea from my experience with Transit app in Maryland and Ventra app in Chicago. It became a passion project to at least try and emulate that for Hattiesburg, home to my alma mater, the University of Southern Mississippi.
 
 <!--
   SCREENSHOT: Home page with the live map, route filters and favourite routes.
