@@ -5,11 +5,11 @@ My intention with this project was to provide a solution to Hattiesburg not havi
 
 N.B: I am done with this but i ask Claude to convert any changes i make on the mobile app to react here just for continuity
 
-<!--
-  SCREENSHOT: Home page with the live map, route filters and favourite routes.
-  Add the file, then uncomment the line below.
-  <p align="center"><img src="docs/screenshots/home.png" alt="Home page" width="900"></p>
--->
+
+
+  | | | | |
+|---|---|---|---|
+| <img src="./assets/Screenshots/1.PNG" width="300"> | <img src="./assets/Screenshots/4.PNG" width="300"> | <img src="./assets/Screenshots/3.PNG" width="300"> | <img src="./assets/Screenshots/2.PNG" width="300"> |
 
 ---
 
@@ -62,15 +62,37 @@ unread indicator.
 
 ## Screens
 
-<!--
-  SCREENSHOT: Trip planner showing route options and the segment breakdown.
-  <p align="center"><img src="docs/screenshots/trip-planner.png" alt="Trip planner" width="900"></p>
--->
+# Route Pages
+  | | |
+|---|---|
+| <img src="./assets/Screenshots/5.PNG" width="300"> | <img src="./assets/Screenshots/6.PNG" width="300"> |
+| <img src="./assets/Screenshots/7.PNG" width="300"> |  |
 
-<!--
-  SCREENSHOT: Route detail page with per-stop schedules.
-  <p align="center"><img src="docs/screenshots/route-detail.png" alt="Route detail" width="900"></p>
--->
+
+
+
+
+
+# Trip Planning/Navigation
+  | | | |
+|---|---|---|
+| <img src="./assets/Screenshots/8.PNG" width="300"> | <img src="./assets/Screenshots/9.PNG" width="300"> | <img src="./assets/Screenshots/10.PNG" width="300"> |
+| <img src="./assets/Screenshots/11.PNG" width="300"> | <img src="./assets/Screenshots/12.PNG" width="300"> | <img src="./assets/Screenshots/13.PNG" width="300"> |
+
+
+
+# Explore Page(TBA)
+
+
+# Settings Page
+  | | |
+|---|---|
+| <img src="./assets/Screenshots/14.PNG" width="300"> | <img src="./assets/Screenshots/15.PNG" width="300"> |
+| <img src="./assets/Screenshots/16.PNG" width="300"> | <img src="./assets/Screenshots/17.PNG" width="300"> |
+
+
+
+
 
 ---
 
