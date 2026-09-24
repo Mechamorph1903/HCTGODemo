@@ -9,7 +9,7 @@ N.B: I am done with this but i ask Claude to convert any changes i make on the m
 
   | | | | |
 |---|---|---|---|
-| <img src="./assets/Screenshots/1.PNG" width="300"> | <img src="./assets/Screenshots/4.PNG" width="300"> | <img src="./assets/Screenshots/3.PNG" width="300"> | <img src="./assets/Screenshots/2.PNG" width="300"> |
+| <img src="./src/assets/Screenshots/1.PNG" width="300"> | <img src="./src/assets/Screenshots/4.PNG" width="300"> | <img src="./src/assets/Screenshots/3.PNG" width="300"> | <img src="./src/assets/Screenshots/2.PNG" width="300"> |
 
 ---
 
@@ -65,8 +65,8 @@ unread indicator.
 # Route Pages
   | | |
 |---|---|
-| <img src="./assets/Screenshots/5.PNG" width="300"> | <img src="./assets/Screenshots/6.PNG" width="300"> |
-| <img src="./assets/Screenshots/7.PNG" width="300"> |  |
+| <img src="./src/assets/Screenshots/5.PNG" width="300"> | <img src="./src/assets/Screenshots/6.PNG" width="300"> |
+| <img src="./src/assets/Screenshots/7.PNG" width="300"> |  |
 
 
 
@@ -76,8 +76,8 @@ unread indicator.
 # Trip Planning/Navigation
   | | | |
 |---|---|---|
-| <img src="./assets/Screenshots/8.PNG" width="300"> | <img src="./assets/Screenshots/9.PNG" width="300"> | <img src="./assets/Screenshots/10.PNG" width="300"> |
-| <img src="./assets/Screenshots/11.PNG" width="300"> | <img src="./assets/Screenshots/12.PNG" width="300"> | <img src="./assets/Screenshots/13.PNG" width="300"> |
+| <img src="./src/assets/Screenshots/8.PNG" width="300"> | <img src="./src/assets/Screenshots/9.PNG" width="300"> | <img src="./src/assets/Screenshots/10.PNG" width="300"> |
+| <img src="./src/assets/Screenshots/11.PNG" width="300"> | <img src="./src/assets/Screenshots/12.PNG" width="300"> | <img src="./src/assets/Screenshots/13.PNG" width="300"> |
 
 
 
@@ -87,8 +87,8 @@ unread indicator.
 # Settings Page
   | | |
 |---|---|
-| <img src="./assets/Screenshots/14.PNG" width="300"> | <img src="./assets/Screenshots/15.PNG" width="300"> |
-| <img src="./assets/Screenshots/16.PNG" width="300"> | <img src="./assets/Screenshots/17.PNG" width="300"> |
+| <img src="./src/assets/Screenshots/14.PNG" width="300"> | <img src="./src/assets/Screenshots/15.PNG" width="300"> |
+| <img src="./src/assets/Screenshots/16.PNG" width="300"> | <img src="./src/assets/Screenshots/17.PNG" width="300"> |
 
 
 
